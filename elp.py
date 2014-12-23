@@ -390,7 +390,7 @@ class Wviews():
         if self.modal_operator_count(stat_struct) == 1 or not self.modal_operator_count(stat_struct):
             return True
 
-        #make a copy of the original queue to not lose original value set
+        # make a copy of the original queue to not lose original value set
         copysStat = copy.copy(stat_struct)
         #print "valuator_string:",valuator_string
         count = self.modOpCount(stat_struct)
