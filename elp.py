@@ -392,7 +392,7 @@ class Wviews():
 
         # make a copy of the original queue to not lose original value set
         copysStat = copy.copy(stat_struct)
-        #print "valuator_string:",valuator_string
+        # print "valuator_string:",valuator_string
         count = self.modOpCount(stat_struct)
         countb = len(stat_struct.keys())
         while countb:
