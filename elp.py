@@ -407,6 +407,7 @@ class Wviews():
             countb -= 1
             
         count = len(stat_struct)
+
         while count:
             if len(stat_struct[stat_struct.keys()[count-1]]) == 0:
                 del stat_struct[count]
