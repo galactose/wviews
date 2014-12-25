@@ -1,146 +1,107 @@
-import os, re, copy, math, grounder
+import os
+import re
+import copy
+import math
+import grounder
+import parser
+import sys
 
 
-class WviewsOptimisation():
-    def __init__(self, fileName):
+class WorldViewsOptimisation(object):
+    def __init__(self, file_name):
         pass
 
 
-class Wviews():
+class WorldViews(object):
     """
     **************************************************************************
         elp: Epistemic Answer Set Logic Program Interpreter
-        Build 1.5 - Port from C++ -> Python.
+        Build 1.1 - Port from C++ -> Python.
 
         School of Computing and Mathematics,
           Intelligent Systems Laboratory,
            University of Western Sydney,
                   Penrith Campus.
-        
+
         Author - Michael Kelly BSc CompSci (Hons.), PhD Candidate.
 
         Summary: This program reads in programs containing lists of
             rules of the form:
                 [a-z+[a-z]*[(A-Z+[A-Z]*)] [v a-z*]] :- [[~|-]K|M[a-z]*,]*[[not]a-z*]
-            where a-zA-Z represents atoms, 
+            where a-zA-Z represents atoms,
                   v represents disjunction,
-                  "," represents conjunction,
+                  ',' represents conjunction,
                   K|M represents the modal operators,
                     K: 'Knows' and
                     M: 'Believes'
-                  and ":-" representing implication
-                    "is true if the following is also true"
+                  and ':-' representing implication
+                    'is true if the following is also true'
 
             and returns the applicable worldviews derived from the rules.
     **************************************************************************
     """
-    
+
     def __init__(self, file_name):
         self.program = []
         self.stats = {}
-        self.build_program(file_name)
-        self.stats = self.sysStat(self.program)
-        
+        parser.parse_program(file_name)
+        self.stats = self.system_statistics(self.program)
+
     def __del__(self):
         del self.program
         del self
-        
-    def build_program(self, fileName):
-        """
-            buildProgram:
-            PRE:
-            POST:
-            COMPLEXITY:
-            COMPLETED: incomplete
-        """
-        """
-        body, rule, head, tail, tempProgram = [], [], [], [], []
-        if fileName != '':
-            try:
-                
-                input = file(fileName, "r") #need to implement try/except block to catch exceptions
-            except IOError:
-                print "<file doesnt exist.>"
-                os.system("pause")
-                exit(1)
-            for line in input.readlines():
-                try:
-                    if '#' in line:
-                        line = line[0: line.index('#')]
-                    if not line.index('.') == -1: #need to implement system such that rules can be staggered over various lines or a line may have multiple rules.
-                        tempProgram.append(line[0:line.index('.')+1].strip())
-                except ValueError: pass
-            for line in tempProgram:
-                body, rule, head, tail = [], [], [], []
-                line = line.replace('.', '')
-                body = line.split(":-")
-                if len(body) == 1:
-                    body[0] = body[0].strip()
-                    rule = body[0].split(" v ")
-                    for count in range(0, len(rule)):
-                        rule[count] = rule[count].strip()
-                elif len(body) == 2:
-                    head = body[0].split(' v ')
-                    for count in range(0, len(head)):
-                        head[count] = head[count].strip()
-                    tail = body[1].split(',')
-                    for count in range(0, len(tail)):
-                        tail[count] = tail[count].strip()
-                    rule.append(head)
-                    rule.append(tail)
-                self.program.append(rule)"""
 
-    def sysStat(self, program):
+    def system_statistics(self, program):
         """
-            sysStat:
+            system_statistics:
             PRE:
             POST:
             COMPLEXITY:
             COMPLETED:
         """
-        line, atomTokens, ruleTokens, statistics = [], [], [], {}
-        check, modNeg = 0, 0
-        for index in range(0, len(program)): #loop over rules
-            ruleTokens = []
+        statistics = {}
+        for index in range(0, len(program)):  # loop over rules
+            rule_tokens = []
             if isinstance(program[index], type([])):
-                wordCount = 0
+                word_count = 0
                 for word in program[index][1]:
-                    atomTokens = []
-                    modNeg = 0
-                    #word = word.strip()
+                    atom_tokens = []
+                    mod_neg = 0
+                    # word = word.strip()
                     if word.find('K') != -1 or word.find('M') != -1:
                         check = word.find('M')
                         if check == -1:
                             check = word.find('K')
-                            modNeg = modNeg|0x2
-                        atomTokens.append(wordCount) #appending atomCount
-                        wordCount = -1
-                        atomTokens.append(check) #appending epistemic atom to list
+                            mod_neg |= 0x2
+                        atom_tokens.append(word_count)  # appending atomCount
+                        word_count = -1
+                        atom_tokens.append(check)  # appending epistemic atom to list
                         if check != 0:
                             if word[check-1] == '-' or word[check-1] == '~':
-                                modNeg = modNeg|0x4
+                                mod_neg |= 0x4
                         if word[check + 1] == '-' or word[check + 1] == '~':
-                            modNeg = modNeg|0x1
-                        atomTokens.append(modNeg)
+                            mod_neg |= 0x1
+                        atom_tokens.append(mod_neg)
                         if not (word[check + 1] == '-' or word[check + 1] == '~'):
-                            atomTokens.append(word[check+1:len(word)])
+                            atom_tokens.append(word[check+1:len(word)])
                         else:
-                            atomTokens.append(word[check+2:len(word)])
-                        ruleTokens.append(atomTokens)
-                    wordCount += 1
-            if len(ruleTokens) != 0:
-                statistics[index] = ruleTokens
+                            atom_tokens.append(word[check+2:len(word)])
+                        rule_tokens.append(atom_tokens)
+                    word_count += 1
+            if len(rule_tokens):
+                statistics[index] = rule_tokens
         return copy.copy(statistics)
 
-    def parseRules(self, program):
+    def parse_rules(self, program):
         """
-            parseRules:
+            parse_rules:
             PRE:
             POST:
             COMPLEXITY:
             COMPLETED:
         """
-        for curPos in range(0, len(program)): pass
+        for curPos in range(0, len(program)):
+            pass
 
     def groundPredicates(self):
         pass
@@ -153,8 +114,9 @@ class Wviews():
 
     def findFacts(self, program):
         pass
-    
-    def compare_atoms(self, world_view, modal_operation_type, atom, valuation, debug = 0):
+
+    @staticmethod
+    def compare_atoms(world_view, modal_operation_type, atom, valuation, debug=0):
         """
             compare_atoms:
             PRE:
@@ -164,12 +126,12 @@ class Wviews():
                 - wView a returned answer set
                 - data, epAtom Position
                 - modalOpType - represents modality and negation
-                - 
+                -
         """
         universal_count = 0
         answer_set_count = 0
         one_instance = False
-        if modal_operation_type&0x1 == 0x1:
+        if modal_operation_type & 0x1 == 0x1:
             atom = '-' + atom
 
         for answer_set in world_view:
@@ -182,8 +144,8 @@ class Wviews():
             print 'wView: %s,\n modalOpType: %s,\natom: %s,\nvaluation: %s,\nuniversalCount: %s,\nendsetCount: %s,\noneInstance: %s' % \
                   (world_view, modal_operation_type, atom, valuation, universal_count, answer_set_count, one_instance)
 
-        if modal_operation_type&0x2 == 0x2:  # KNOWS
-            if modal_operation_type&0x4 == 0x4:  # NEGATED KNOWLEDGE
+        if modal_operation_type & 0x2 == 0x2:  # KNOWS
+            if modal_operation_type & 0x4 == 0x4:  # NEGATED KNOWLEDGE
                 if universal_count == answer_set_count:  # IF atom present in all answer sets
                     return not valuation
                 else:  # IF NOT present in all answer sets
@@ -194,7 +156,7 @@ class Wviews():
                 else:
                     return not valuation
         else:  # BELIEVES
-            if modal_operation_type&0x4 == 0x4:  # NEGATED BELIEF
+            if modal_operation_type & 0x4 == 0x4:  # NEGATED BELIEF
                 if one_instance:
                     return not valuation
                 else:
@@ -205,7 +167,8 @@ class Wviews():
                 else:
                     return not valuation
 
-    def translate_modality(self, eval):
+    @staticmethod
+    def translate_modality(eval):
         """
             transModality:
             PRE:
@@ -214,17 +177,17 @@ class Wviews():
             COMPLETED:
         """
         mod = ''
-        if (eval&0x1) == 1:
+        if (eval & 0x1) == 1:
             mod = '-'
-        if (eval&0x2) == 2:
+        if (eval & 0x2) == 2:
             mod = 'K' + mod
         else:
             mod = 'M' + mod
-        if (eval&0x4) == 4:
+        if (eval & 0x4) == 4:
             mod = '-' + mod
         return mod
-        
-    def checkValidity(self, answer_set, stat_struct, debug = 0):
+
+    def check_validity(self, answer_set, stat_struct, debug=0):
         """
             #goal: extract the current evaluation on the modal atom
             #     - with the given binary evaluation, the epistemic atom and the found worldview
@@ -243,7 +206,7 @@ class Wviews():
         """
             parse_answer_set: takes unformatted queue of answerset values and removes formatting, making a list of lists
         """
-        answer_set_regex = re.compile('{([\W\w]*)}')
+        answer_set_regex = re.compile(r'{([\W\w]*)}')
         temp_list = []
         return_list = []
         for line in queue:
@@ -255,18 +218,18 @@ class Wviews():
                     temp_list[index] = temp_list[index].strip()
             return_list.append(temp_list)
         return return_list
-    
-    def modal_operator_count(self, statStruct):
+
+    def modal_operator_count(self, stat_struct):
         count = 0
-        for key in statStruct.keys():
-            count += len(statStruct[key])
+        for key in stat_struct.keys():
+            count += len(stat_struct[key])
         return count
-        
+
     def generate_worldview(self, program, stat_struct):
         """
             show instantiations: removes modal operators in answer sets by assuming they are
             true or false, on the case they are true we remove the modal operator and its atom
-            in the case it is false we move the entire rule from the answer set. once this is 
+            in the case it is false we move the entire rule from the answer set. once this is
             done the answer set is sent to dlv for its stable model
         """
         binary_count = math.pow(2, self.modal_operator_count(stat_struct))
@@ -275,26 +238,26 @@ class Wviews():
 
         if self.modal_operator_count(stat_struct) > 31:
             return
-            
-        #posOpt = self.optFeasibilty(stat_struct)
-        
+
+        # posOpt = self.optimisation_feasibilty(stat_struct)
+
         while binary_count:
             # passCheck = self.evaluation_skip(posOpt, stat_struct, binModEval)
             # if passCheck:
             good_int_count += 1
             program_copy = self.build_interpreted_program(program, stat_struct, binary_modal_valuation)
-            # print ""
-            # print "iterpreted program ->"
+            # print ''
+            # print 'iterpreted program ->'
             # pprint.pprint(copy)
-            # print ""
-            self.export_rules(program_copy, "ans.elp")
-            os.system("dlv -silent ans.elp > temp2")
-            answer_set = self.ImportAnsSet("temp2")  # builds the answer into a queue
+            # print ''
+            self.export_rules(program_copy, 'ans.elp')
+            os.system('dlv -silent ans.elp > temp2')
+            answer_set = parser.import_answer_set('temp2')  # builds the answer into a queue
             answer_set = self.parse_answer_set(answer_set)
             # print answer_set
-            # os.system("pause")
-            
-            if self.checkValidity(answer_set, stat_struct):  # checks returned set against original modal set.
+            # os.system('pause')
+
+            if self.check_validity(answer_set, stat_struct):  # checks returned set against original modal set.
                 yield answer_set
                 # answer_set = emptyQueue(answer_set);
             # else:
@@ -303,14 +266,14 @@ class Wviews():
             binary_count -= 1
 
     @staticmethod
-    def optimisation_feasibility(stat_struct, debug = 0):
+    def optimisation_feasibility(stat_struct, debug=0):
         """
             Optimisation Feasibility:
                 Determines if a program is feasible for optimisation, if there is no way
                 speed it up then going through the extra process of attempting it.
                 Valuation optimisation requires at least 2 atoms to be identical in label (not including negation)
                 Pre :- The processing and attainment of subjective atoms and their negation status
-                Post :- A string of bits will be returned determining which optimisations should be 
+                Post :- A string of bits will be returned determining which optimisations should be
                 checked for in the optimisation process
         """
         ops = 0
@@ -320,56 +283,56 @@ class Wviews():
             for mod_a in range(0, len(stat_struct[line_a])):
                 for line_b in stat_struct:
                     for mod_b in range(0, len(stat_struct[line_b])-1):
-                        if stat_struct[line_b][mod_a][2] == stat_struct[line_b][mod_b][2] and (line_b != line_a and mod_a != mod_b):
-                            if debug == 1:
-                                print 'statStruct[line_b][mod_a][2]:', stat_struct[line_b][mod_a][2]
-                                print 'statStruct[line_b][mod_b][2]:', stat_struct[line_b][mod_b][2]
+                        if stat_struct[line_b][mod_a][2] == stat_struct[line_b][mod_b][2] and \
+                                (line_b != line_a and mod_a != mod_b):
+                            if debug:
+                                print 'stat_struct[line_b][mod_a][2]:', stat_struct[line_b][mod_a][2]
+                                print 'stat_struct[line_b][mod_b][2]:', stat_struct[line_b][mod_b][2]
                                 print 'line_b:', line_b
                                 print 'line_a:', line_a
                                 print 'mod_a:', mod_a
                                 print 'mod_b:', mod_b
                             stop_optimisation = True
-                            break 
-         
+                            break
+
         if not stop_optimisation:
             return False
 
-        for line_a in stat_struct.keys():
+        for line_a in stat_struct:
             for epa in stat_struct[line_a]:
-                for line_b in stat_struct.keys():
+                for line_b in stat_struct:
                     for epb in stat_struct[line_b]:
                         if line_b != line_a and epa != epb:
                             if debug:
-                                print "lineb:", line_b
-                                print "linea:", line_a
-                                print "epa:", epa
-                                print "epb:", epb
-                            if ((epa[1]&0x5) == (epb[1]&0x5)) and ((epa[1]&0x2) != (epb[1]&0x2)) and \
-                               ((epa[1]&0x4) == 0):  # for opt TF2
+                                print 'linea: %s\nlineb: %s\n, epa: %s\n, epb: %s\n', (line_a, line_b, epa, epb)
+                            if ((epa[1] & 0x5) == (epb[1] & 0x5)) and ((epa[1] & 0x2) != (epb[1] & 0x2)) and \
+                               ((epa[1] & 0x4) == 0):  # for opt TF2
                                 if debug:
-                                    print "opt TF2"
+                                    print 'opt TF2'
                                 ops |= 0x10
-                            if (epa[1]&0x2) == (epb[1]&0x2):  # for opt TT2
+                            if (epa[1] & 0x2) == (epb[1] & 0x2):  # for opt TT2
                                 if debug:
-                                    print "opt TT2"
+                                    print 'opt TT2'
                                 ops |= 0x2
-                            if ((epa[1]&0x1) == (epb[1]&0x1)) and ((epa[1]&0x4) != (epb[1]&0x4)):  # for opts TT3/4 FF1
-                                if (epa[1]&0x2) == (epb[1]&0x2):
+                            if ((epa[1] & 0x1) == (epb[1] & 0x1)) and ((epa[1] & 0x4) != (epb[1] & 0x4)):
+                                # for opts TT3/4 FF1
+                                if (epa[1] & 0x2) == (epb[1] & 0x2):
                                     if debug:
-                                        print "opt TT3 FF1\n"
+                                        print 'opt TT3 FF1\n'
                                     ops |= 0x20
-                                if (epa[1]&0x2) != (epb[1]&0x2):
+                                if (epa[1] & 0x2) != (epb[1] & 0x2):
                                     if debug:
-                                        print "opt TT4\n"
+                                        print 'opt TT4\n'
                                     ops |= 0x4
                             if epa[1] == epb[1]:  # for opts TF1
                                 if debug:
-                                    print "opt TF1\n"
+                                    print 'opt TF1\n'
                                 ops |= 0x8
-                            if ((epa[1]&0x2) != (epb[1]&0x2)) and ((epa[1]&0x1) != (epb[1]&0x1)) and ((epa[1]&0x4) == (epb[1]&0x4)) and ((epa[1]&0x4) == 0):
-                                #for opt TT1
+                            if ((epa[1] & 0x2) != (epb[1] & 0x2)) and ((epa[1] & 0x1) != (epb[1] & 0x1)) and \
+                                    ((epa[1] & 0x4) == (epb[1] & 0x4)) and ((epa[1] & 0x4) == 0):
+                                # for opt TT1
                                 if debug:
-                                    print "opt TT1"
+                                    print 'opt TT1'
                                 ops |= 0x1
         return ops
 
@@ -392,20 +355,21 @@ class Wviews():
 
         # make a copy of the original queue to not lose original value set
         copysStat = copy.copy(stat_struct)
-        # print "valuator_string:",valuator_string
+        # print 'valuator_string:',valuator_string
         count = self.modOpCount(stat_struct)
         countb = len(stat_struct.keys())
         while countb:
             counta = len(stat_struct[stat_struct.keys()[countb-1]])
             while counta:
                 temp = valuator_string & 0x1
-                valuator_string = valuator_string >> 1
+                valuator_string >>= 1
                 if not temp:
-                    stat_struct[stat_struct.keys()[countb-1]].remove(stat_struct[stat_struct.keys()[countb-1]][counta-1])
-                    #print stat_struct[stat_struct.keys()[countb-1]]
+                    remove_item = stat_struct[stat_struct.keys()[countb-1]][counta-1]
+                    stat_struct[stat_struct.keys()[countb-1]].remove(remove_item)
+                    # print stat_struct[stat_struct.keys()[countb-1]]
                 counta -= 1
             countb -= 1
-            
+
         count = len(stat_struct)
 
         while count:
@@ -413,148 +377,96 @@ class Wviews():
                 del stat_struct[count]
             count -= 1
 
-        for linea in stat_struct.keys():
-            for moda in stat_struct[linea]:
-                for lineb in stat_struct.keys():
-                    for modb in stat_struct[lineb]:
-                        if moda != modb:
-                            print "moda:", moda
-                            print "modb:", modb
+        for linea in stat_struct:
+            for mod_a in stat_struct[linea]:
+                for lineb in stat_struct:
+                    for mod_b in stat_struct[lineb]:
+                        if mod_a != mod_b:
+                            print 'mod_a:', mod_a
+                            print 'mod_b:', mod_b
                             if optimisation & 0x1 == 1:
-                                if(((moda[1]&0x2) != (modb[1]&0x2)) and ((moda[1]&0x1) != (modb[1]&0x1)) and (moda[2] == modb[2]) and ((moda[1]&0x4) == (modb[1]&0x4)) and ((moda[1]&0x4) == 0)):
-                                    #if modal operators are different, atom negation is different, and there is no atom negation
+                                if ((mod_a[1] & 0x2) != (mod_b[1] & 0x2)) and ((mod_a[1] & 0x1) != (mod_b[1] & 0x1)) and \
+                                        (mod_a[2] == mod_b[2]) and ((mod_a[1] & 0x4) == (mod_b[1] & 0x4)) and \
+                                        ((mod_a[1] & 0x4) == 0):
+                                    # if modal operators are different
+                                    # atom negation is different, and there is no atom negation
+                                    self.print_opt('TT1', mod_a, mod_b, debug)
+                                    return False
+                            elif (optimisation & 0x2) == 2:
+                                if ((mod_a[1] & 0x6) == (mod_b[1] & 0x6)) and ((mod_a[1] & 0x2) == 1) and \
+                                   ((mod_a[1] & 0x4) == 0) and ((mod_a[1] & 0x1) != (mod_b[1] & 0x1)) and \
+                                   (mod_a[2] == mod_b[2]):
+                                    # if both mod negation and mod are the same (K and no negation)
+                                    self.print_opt('TT2', mod_a, mod_b, debug)
+                                    return False
+                            elif (optimisation & 0x4) == 4:
+                                if ((mod_a[1] & 0x6) != (mod_b[1] & 0x6)) and (mod_a[2] == mod_b[1]) and \
+                                   ((mod_a[1] & 0x1) == (mod_b[1] & 0x1)) and \
+                                   ((mod_a[1] & 0x4) != (mod_a[1] & 0x2)) and \
+                                   ((mod_b[1] & 0x4) != (mod_b[1] & 0x2)):
+                                    self.print_opt('TT4', mod_a, mod_b, debug)
+                                    return False
+                            if (optimisation & 0x20) == 32:
+                                if ((mod_a[1] & 0x3) == (mod_b[1] & 0x3)) and (mod_a[2] == mod_b[2]) and \
+                                   ((mod_a[1] & 0x4) != (mod_b[1] & 0x4)):
+                                    self.print_opt('TT3', mod_a, mod_b, debug)
+                                    return False
+                            if (optimisation & 0x8) == 8:
+                                if (mod_a[1] == mod_b[1]) and (mod_a[2] == mod_b[2]):
                                     if debug:
-                                        print "TT1 mod: ", moda[1], ", atom: ", moda[2], ", modCompare: ", modb[1], ", atom:", moda[2]
+                                        print 'TF1 1 nMod = modCompare, ', mod, ' = ', modCompare, \
+                                            '\n atom = atomCompare, ', atom, ' = ', atomCompare
                                     return False
-                            elif((optimisation&0x2) == 2):
-                                if(((moda[1]&0x6) == (modb[1]&0x6)) and ((moda[1]&0x2) == 1) and ((moda[1]&0x4) == 0)
-                                   and ((moda[1]&0x1) != (modb[1]&0x1)) and (moda[2] == modb[2])):
-                                    #if both mod negation and mod are the same (K and no negation)
-                                    print "TT2 mod: ", moda[1], ", atom: ", moda[2], ", modCompare: ", modb[1], ", atom:", moda[2]
+                            if (optimisation & 0x10) == 16:
+                                if ((mod_a[1] & 0x2) != (mod_b[1] & 0x2)) and ((mod_a[1] & 0x2) == 1) and \
+                                   (mod_a[2] == mod_b[2]) and ((mod_a[1] & 0x1) == (mod_b[1] & 0x1)) and \
+                                   ((mod_a[1] & 0x4) == (mod_b[1] & 0x4)) and ((mod_a[1] & 0x4) == 0):
+                                    self.print_opt('TF2', mod_a, mod_b, debug)
                                     return False
-                            elif((optimisation&0x4) == 4):
-                                if(((moda[1]&0x6) != (modb[1]&0x6)) and (moda[2] == modb[1]) and
-                                       ((moda[1]&0x1) == (modb[1]&0x1)) and ((moda[1]&0x4) != (moda[1]&0x2)) and
-                                       ((modb[1]&0x4) != (modb[1]&0x2))):
-                                    print "TT4 mod: ", moda[1], ", atom: ", moda[2], ", modCompare: ", modb[1], ", atom:", moda[2]
-                                    return False
-                            if((optimisation&0x20) == 32):
-                                if(((moda[1]&0x3) == (modb[1]&0x3)) and (moda[2] == modb[2]) and
-                                       ((moda[1]&0x4) != (modb[1]&0x4))):
-                                    print "TT3 mod: ", moda[1], ", atom: ", moda[2], ", modCompare: ", modb[1], ", atom:", moda[2]
-                                    return False
-                            if(optimisation&0x8) == 8:
-                                if(moda[1] == modb[1]) and (moda[2] == modb[2]):
-                                    if debug:
-                                        print "TF1 1 nMod = modCompare, ", mod, " = ", modCompare, "\n atom = atomCompare, ", atom, " = ", atomCompare
-                                    return False
-                            if (optimisation&0x10) == 16:
-                                if(((moda[1]&0x2) != (modb[1]&0x2)) and ((moda[1]&0x2) == 1) and
-                                       (moda[2] == modb[2]) and ((moda[1]&0x1) == (modb[1]&0x1)) and
-                                       ((moda[1]&0x4) == (modb[1]&0x4)) and ((moda[1]&0x4) == 0)):
-                                    if debug:
-                                        print "TF2 mod: ", moda[1], ", atom: ", moda[2], ", modCompare: ", modb[1], ", atom:", moda[2]
-                                    return False
-                            if (optimisation&0x20) == 32:
-                                if((moda[1]&0x3) == (modb[1]&0x3)) and (modb[2] == moda[2]) and \
-                                        ((modb[1]&0x4) != (moda[1]&0x4)):
-                                    print "TT FF mod: ", moda[1], ", atom: ", moda[2], ", modCompare: ", modb[1], ", atom:", moda[2]
+                            if (optimisation & 0x20) == 32:
+                                if ((mod_a[1] & 0x3) == (mod_b[1] & 0x3)) and (mod_b[2] == mod_a[2]) and \
+                                        ((mod_b[1] & 0x4) != (mod_a[1] & 0x4)):
                                     return False
         return True
 
+    @staticmethod
+    def print_opt(opt_type, mod_a, mod_b, debug=0):
+        if debug:
+            print '%s mod: %s, atom: %s, modCompare: %s, atom: %s' % (opt_type, mod_a[1], mod_a[2], mod_b[1], mod_b[2])
+
     def export_rules(self, queue, filename='ans.elp', debug=0):
-        if debug == 1:
-            print "export_rules(self, queue, filename = 'ans.elp') -> queue"
-            print queue
-            print ""
-        output = file(filename, "w")
+        if debug:
+            print 'export_rules(self, queue, filename = "ans.elp") -> queue\n', queue, '\n'
+        output = file(filename, 'w')
         for line in queue:
-            if debug == 1:
-                print "export_rules(self, queue, filename = 'ans.elp') -> line"
-                print line
-                print ""
-            #print line
-            if isinstance(line[0], list): #STILL WORKING HERE
+            if debug:
+                print 'export_rules(self, queue, filename = "ans.elp") -> line\n', line, '\n'
+            if isinstance(line[0], list):  # STILL WORKING HERE
                 for head in range(0, len(line[0])):
                     output.write(line[0][head])
-                    #print "line[0][head]:", line[0][head]
-                    #print "head:", head, "len(line)-2:", len(line[0])-2, "len(line):", len(line[0])
-                    #print ""
+                    # print 'line[0][head]:', line[0][head]
+                    # print 'head:', head, 'len(line)-2:', len(line[0])-2, 'len(line):', len(line[0])
+                    # print ''
                     if head != len(line[0])-1:
-                        #print "IM WRITING DISJUNCTION"
-                        output.write(" v ")
+                        # print 'IM WRITING DISJUNCTION'
+                        output.write(' v ')
 
-                output.write(" :- ")
+                output.write(' :- ')
                 for tail in range(0, len(line[1])):
                     output.write(line[1][tail])
-                    #print "tail:", tail, "len(line):", len(line[1])
+                    # print 'tail:', tail, 'len(line):', len(line[1])
                     if tail != len(line[1])-1:
-                        output.write(", ")
-            
+                        output.write(', ')
+
             elif isinstance(line[0], str):
                 for head in range(0, len(line)):
                     output.write(line[head])
 
                     if head != len(line)-1:
-                        output.write(" v ")    
-            output.write(".\n")
-        output.close()          
+                        output.write(' v ')
+            output.write('.\n')
+        output.close()
         return True
-
-    def build_program(self, fileName):
-        body, rule, head, tail, tempProgram = [], [], [], [], []
-        if fileName != '':
-            try:
-                print "fileName:", fileName
-                input = file(fileName, "r") #need to implement try/except block to catch exceptions
-            except IOError:
-                print "<file doesnt exist.>"
-                os.system("pause")
-                exit(1)
-            for line in input.readlines():
-                try:
-                    if '%' in line:
-                        line = line[0: line.index('%')]
-                    if not line.index('.') == -1: #need to implement system such that rules can be staggered over various lines or a line may have multiple rules.
-                        tempProgram.append(line[0:line.index('.')+1].strip())
-                except ValueError: pass
-            for line in tempProgram:
-                body, rule, head, tail = [], [], [], []
-                line = line.replace('.', '')
-                body = line.split(":-")
-                if len(body) == 1:
-                    body[0] = body[0].strip()
-                    rule = body[0].split(" v ")
-                    for count in range(0, len(rule)):
-                        rule[count] = rule[count].strip()
-                elif len(body) == 2:
-                    head = body[0].split(' v ')
-                    for count in range(0, len(head)):
-                        head[count] = head[count].strip()
-                    tail = body[1].split(',')
-                    for count in range(0, len(tail)):
-                        tail[count] = tail[count].strip()
-                    rule.append(head)
-                    rule.append(tail)
-                self.program.append(rule)
-        print self.program
-
-    def ImportAnsSet(self, fileName = ''):
-        queue = []
-        if fileName != '':
-            try:
-                input = file(fileName, "r") #need to implement try/except block to catch exceptions
-            except IOError:
-                print "<file doesnt exist.>"
-                os.system("pause")
-                exit(1)
-        for line in input.readlines():
-            try:
-                queue.append(line.strip('\n'))
-            except ValueError: pass
-        #print queue
-        return queue
-
 
     def remove_modal_operators(self, body, rule, epAtom, beginPos):  # NOT COMPLETE
         """
@@ -579,99 +491,104 @@ class Wviews():
                 pass
         return rule
 
-    def updateValuation(self, statStruct, valuatorString):
-        countb = len(statStruct.keys())
-        while countb:
-            counta = len(statStruct[statStruct.keys()[countb-1]])
-            while counta:
-                temp = valuatorString&0x1
-                valuatorString = valuatorString>>1
-                if len(statStruct[statStruct.keys()[countb-1]][counta-1]) == 5:
-                    statStruct[statStruct.keys()[countb-1]][counta-1][4] = temp
-                elif len(statStruct[statStruct.keys()[countb-1]][counta-1]) < 5:
-                    statStruct[statStruct.keys()[countb-1]][counta-1].append(temp)                             
-                counta -= 1
-            countb -= 1
+    @staticmethod
+    def update_valuation(stat_struct, valuation_string):
+        count_b = len(stat_struct)
+        while count_b:
+            count_a = len(stat_struct[stat_struct.keys()[count_b-1]])
+            while count_a:
+                temp = valuation_string & 0x1
+                valuation_string >>= 1
+                if len(stat_struct[stat_struct.keys()[count_b-1]][count_a-1]) == 5:
+                    stat_struct[stat_struct.keys()[count_b-1]][count_a-1][4] = temp
+                elif len(stat_struct[stat_struct.keys()[count_b-1]][count_a-1]) < 5:
+                    stat_struct[stat_struct.keys()[count_b-1]][count_a-1].append(temp)
+                count_a -= 1
+            count_b -= 1
 
-    def updateIndex(self, lineIndex, dict):
+    def update_index(self, line_index, dictionary):
         tempDict = {}
-        for index in range(0, lineIndex):
-            tempDict[dict.keys()[index]] = copy.copy(dict[dict.keys()[index]])
-        for index in range(lineIndex, len(dict.keys())):            
-            tempDict[dict.keys()[index]-1] = copy.copy(dict[dict.keys()[index]])
-        # print "tempDict:", tempDict
+        for index in range(0, line_index):
+            tempDict[dictionary.keys()[index]] = copy.copy(dictionary[dictionary.keys()[index]])
+        for index in range(line_index, len(dictionary.keys())):
+            tempDict[dictionary.keys()[index]-1] = copy.copy(dictionary[dictionary.keys()[index]])
+        # print 'tempDict:', tempDict
         return tempDict
 
-    def remAllEpAtoms(self, line):
+    @staticmethod
+    def remove_all_epistemic_atoms(line):
         temp = []
-        #print "remAllEpAtoms(", line, ")"
+        # print 'remove_all_epistemic_atoms(', line, ')'
         if isinstance(line, type([])):
             for index in range(0, len(line)):
-                #print "remAllEpAtoms(line) -> index:", index
-                #print "remAllEpAtoms(line) -> line[index]:", line[index]
+                # print 'remove_all_epistemic_atoms(line) -> index:', index
+                # print 'remove_all_epistemic_atoms(line) -> line[index]:', line[index]
                 if not line[index].find('K') != -1 and not line[index].find('M') != -1:
                     temp.append(line[index])
-        if not len(temp): return
-        else: return temp
-            
-            
-    def build_interpreted_program(self, program, statStruct, valuatorString):
+        if not len(temp):
+            return
+        else:
+            return temp
+
+    def build_interpreted_program(self, program, stat_struct, valuator_string):
         """
-            showPossibleSet: Takes in the queue of rules, the line locations of its modal operators, the character locations
-                of modal operators, and the integer value which determines the truth valuation of each modal operator.
+            showPossibleSet: Takes in the queue of rules, the line locations of its modal operators,
+                the character locations of modal operators, and the integer value which determines the truth valuation
+                of each modal operator.
         """
-        
+
         valuation = copy.deepcopy(program)
-        modTemp, count, flag = 0, 0, 0
-        if len(program) > 0 and len(statStruct.keys()) == 0:
+        mod_temp = 0
+        count = 0
+        flag = 0
+        if len(program) > 0 and not len(stat_struct):
             return queue
 
-        modTemp = len(statStruct.keys())
-        self.updateValuation(statStruct, valuatorString)
-        
-        for line in statStruct.keys():
+        mod_temp = len(stat_struct)
+        self.update_valuation(stat_struct, valuator_string)
+
+        for line in stat_struct:
             flag = 0
-            for epAtom in range(0, len(statStruct[line])):
-                if statStruct[line][epAtom][4] == 0:
+            for epAtom in range(0, len(stat_struct[line])):
+                if stat_struct[line][epAtom][4] == 0:
                     flag = 1
-                    #print "found 0, breaking"
+                    # print 'found 0, breaking'
                     break
-            #os.system("pause")
-            #print "flag:", flag
+            # os.system('pause')
+            # print 'flag:', flag
             if flag == 1:
                 valuation[line].append(1)
             else:
-                valuation[line][1] = self.remAllEpAtoms(valuation[line][1])
-                if valuation[line][1] == None:
+                valuation[line][1] = self.remove_all_epistemic_atoms(valuation[line][1])
+                if not valuation[line][1]:
                     valuation[line] = valuation[line][0]
-        
-        #pprint.pprint(valuation)
+
+        # pprint.pprint(valuation)
         total = len(valuation)
-        count = 0
         tempValuation = []
         for line in valuation:
-            #print "line[-1]:", line[-1]
+            # print 'line[-1]:', line[-1]
             if line[-1] != 1:
                 tempValuation.append(line)
-                
-        #pprint.pprint(tempValuation)
+
+        # pprint.pprint(tempValuation)
         return tempValuation
-        
-    def runSession(self):
-        count = 0
+
+    def run_session(self):
+        world_view_count = 0
         try:
-            wvObj = self.generate_worldview(self.program, self.stats)
-            while 1:
-                count += 1
-                print wvObj.next()
+            world_view = self.generate_worldview(self.program, self.stats)
+            while True:
+                world_view_count += 1
+                sys.stdout.write(world_view.next())
         except StopIteration:
             del self
-                
+
 if __name__ == '__main__':
-    path = os.getcwd() + "\\worldviews"
-    files = os.listdir("worldviews")
-    session = Wviews("worldviews\\interview.txt")
-    wview_grounder = grounder.grounding(session)
+    file_path = os.getcwd() + '\\worldviews'
+    files = os.listdir('worldviews')
+    session = WorldViews('worldviews\\interview.txt')
+    worldview_grounder = grounder.grounding(session)
     countString = []
     length = 5
     base = 4
@@ -681,15 +598,15 @@ if __name__ == '__main__':
     print countString
 
     while 1:
-        countString = wview_grounder.incString(countString, base, length)
+        countString = worldview_grounder.incString(countString, base, length)
         print countString
-        os.system("pause")
+        os.system('pause')
 
-    #"worldviews\\interview.txt"
-    #for inst in files:
-    #    session = elp("worldviews\\" + inst)
-    #    session.runSession()
-    #    print "im here!"
-    #    os.system("pause")
-    #    os.system("cls")
+    # 'worldviews\\interview.txt'
+    # for inst in files:
+    #    session = elp('worldviews\\' + inst)
+    #    session.run_session()
+    #    print 'im here!'
+    #    os.system('pause')
+    #    os.system('cls')
     #    del session
