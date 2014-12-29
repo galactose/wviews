@@ -1,0 +1,6 @@
+a :- Kb, c, d, Ma, c.
+a :- b.
+c :- c, Kb.
+a v c.
+a v b :- a, Kc, Md, Ke.
+e :- Mc.

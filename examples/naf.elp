@@ -1,0 +1,7 @@
+s(a) :- a(s), not t(x).
+d(a) :- h(s), not u(x).
+-a(s).
+u(x).
+c(a) :- not u(x).
+c(a) :- x(x), g(s), not h(x).
+-g(s).

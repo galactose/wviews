@@ -1,0 +1,5 @@
+ eligible(X) :- highGPA(X). #an interview program
+eligible(X) :- minority(X), fairGPA(X). 
+~eligible(X) :- ~fairGPA(X), ~highGPA(X).
+ interview(X) :- ~Keligible(X), ~K~eligible(X).
+fairGPA(howard_moon) v highGPA(howard_moon).

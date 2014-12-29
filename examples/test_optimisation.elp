@@ -1,0 +1,6 @@
+a(c).
+a(d).
+s(X) :- Ka(X), ~Ma(X), Ma(X).
+t(X) :- Ka(X).
+u(X) :- K~a(X).
+w(X) :- ~Ka(X).
