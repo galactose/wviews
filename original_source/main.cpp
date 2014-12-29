@@ -1034,7 +1034,7 @@ void showInstantiations(Queue<string> &queue, Queue<int> &rulePos, Queue<int> &c
 	//printQueue(queue);
 	while(binCount)
 	{
-		copy = copyQueue(queue, copy);				//make duplicate copy to save original
+		copy = copyQueue(queue, copy); //make duplicate copy to save original
 		ansCopy = copyQueue(queue, ansCopy);
 		intCopy = copyQueue(rulePos, intCopy);
 		posCopy = copyQueue(charPos, posCopy);

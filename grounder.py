@@ -1,5 +1,9 @@
-import os, pprint, re, copy, math, elp
-class grounding():
+import os
+import math
+import elp
+
+
+class Grounder(object):
     """
         grounder():
             Generic Grounder object for elp.
@@ -13,9 +17,10 @@ class grounding():
         Queue<string>& copyPredicateRules(Queue<string>& queue, Queue<string>& predicates, bool ruleSwitch);
     """
 
-    def __init__(self, fileName): pass
+    def __init__(self, file_name):
+        pass
 
-    def groundingSession(self, program):
+    def ground_predicates(self, program):
         """
             groundPredicates :- This function takes the program input as argument and reduces all
             variables present in predicated rules and facts. This process is required as facts containing
@@ -32,8 +37,8 @@ class grounding():
             loves_hot_drinks(chip) :- loves_coffee(chip).
             loves_hot_drinks(nancy) :- loves_coffee(nancy).*/
         """
-        groundingString = []
-        varLit = buildVariableGroundingList(program)
+        grounding_string = []
+        varLit = self.build_variable_grounding_list(program)
         varCount = len(varlit[0])
         litCount = len(varlit[1])
         
@@ -50,8 +55,8 @@ class grounding():
             for count in range(0, varCount):
                 groundingString.append(0)
             for count in range(0, math.pow(grnd.queueCount(), ruleLength)):
-                self.replaceVariable(rule, var, ground, groundingString)
-                groundingString = self.incString(groundingString, varCount, litCount)
+                self.replaceVariable(rule, var, ground, grounding_string)
+                grounding_string = self.increment_string(grounding_string, varCount, litCount)
         program = predicatedRules
         program.extend(unPredicatedRules)
         return program
@@ -112,59 +117,248 @@ class grounding():
         return queue;
     """
 
-    def sepPredRules(self, program): pass
+    def sepPredRules(self, program):
+        pass
         #tempProgram = []
         #for line in program:
         #    if isinstance(line, type([])): pass
     
-    def buildVariableGroundingList(self, program): pass
-    
-    def incString(self, nBase, base, length):
+    def build_variable_grounding_list(self, program):
+        pass
+
+    @staticmethod
+    def increment_string(base_n_string, string_base, string_length):
         """
             incrementString :- 
             increments the base n string up one value, if it has reached the highest value it
             will go back down to 0 and raise the next value up by one.
             stack: the number string, values are always accessed from the top of the stack
-            base: the count of ground instances, e.g. ground instance of p(bob) would be bob
-            length: the count of variables, identified by being all upper case
+
+            Arguments:
+             * string_base (int) - the count of ground instances, e.g. ground instance of p(bob) would be bob
+             * string_length (int): the count of variables, identified by being all upper case
         """
-        flag, carry = False, True
-        if len(nBase) == 0 and base > 0 and length > 0:
-            for count in range(0, length):
-                nBase.append(0)
-        for val in nBase:
-            if val != base-1:
-                flag = True
+        not_max_value_flag = False
+        if not base_n_string and string_base > 0 and string_length > 0:
+            base_n_string = [0] * string_length
+
+        for val in base_n_string:
+            if val != string_base - 1:
+                not_max_value_flag = True
                 break
-        if flag == False or base == 0 or length == 0:
-            return nBase
-        count = length
-        
-        while count != 0 or carry == True:
+
+        if not not_max_value_flag or not string_base or not string_length:
+            # return the string value if we've reached the largest value for the incrementer
+            # possibly raise stop iteration here instead
+            raise StopIteration
+
+        iteration_count = string_length
+
+        carry = True
+        while iteration_count or carry:
             carry = True
-            count = length
-            while count and carry:
-                if nBase[length - count] < base-1:
-                    nBase[length - count] += 1
+            iteration_count = string_length
+            while iteration_count and carry:
+                # going from the bottom, if a value is less than it's max, increment it and indicate that carry isn't
+                # necessary, otherwise set to zero and move to next value up in string
+                if base_n_string[string_length - iteration_count] < string_base - 1:
+                    base_n_string[string_length - iteration_count] += 1
                     carry = False
                 else:
-                    nBase[length - count] = 0
-                count -= 1
-            yield nBase
+                    base_n_string[string_length - iteration_count] = 0
+                iteration_count -= 1
+            yield base_n_string
 
-    def replaceVariable(self, rule, variable, ground, nBase):
+    def replace_variable(self, rule, variable, ground, base_n_string):
         pass
-        
+
+# /*
+# 	replaceVariable: replaces all instances of the variable indicated in parameters with the
+# 	ground instance also indicated in the parameters,
+# */
+# Queue<string>& replaceVariable(Queue<string> &queue, Queue<string> &variable, Queue<string> &ground, Stack<int> &nBase)
+# {
+# 	int pos = 0, lastMark = 0, temp = queue.queueCount(), stackNo = 0, replace = 0;
+# 	string dataOut, process, var, grnd, cycle;
+# 	bool skip = false;
+# 	Stack<int> sTemp;
+#
+# 	while(nBase.stackCount() > 0)
+# 	{
+# 		nBase.popStack(stackNo);
+# 		sTemp.pushStack(stackNo);
+#
+# 		replace = (ground.queueCount() - stackNo)-1;
+#
+# 		while(stackNo >= 0)
+# 		{
+# 			ground.dequeue(grnd);
+# 			ground.enqueue(grnd);
+# 			stackNo--;
+# 		}
+#
+# 		while(replace > 0)
+# 		{
+# 			ground.dequeue(cycle);
+# 			ground.enqueue(cycle);
+# 			replace--;
+# 		}
+#
+# 		variable.dequeue(var);
+# 		variable.enqueue(var);
+#
+# 		temp = queue.queueCount();
+#
+# 		while(temp > 0)
+# 		{
+# 			queue.dequeue(dataOut);
+# 			pos = dataOut.size();
+# 			for(int i = 0; i < pos; i++)
+# 			{
+# 				pos = dataOut.size();
+# 				if(dataOut[i] == '(')
+# 				{
+# 					skip = false;
+# 					lastMark = i+1;
+# 					for(int j = i; (j < pos)&&(!skip); j++)
+# 					{
+# 						if(dataOut[j] == ',')
+# 						{
+# 							process = dataOut.substr(lastMark, (j-lastMark));
+# 							process = removeSpaces(process);
+# 							if(process == var)
+# 							{
+# 								dataOut.replace(lastMark, (j-lastMark), grnd);
+# 							}
+#
+# 							lastMark = j+1;
+# 						}
+# 						if(dataOut[j] == ')')
+# 						{
+# 							process = dataOut.substr(lastMark, (j-lastMark));
+# 							process = removeSpaces(process);
+# 							if(process == var)
+# 							{
+# 								dataOut.replace(lastMark, (j-lastMark), grnd);
+# 							}
+#
+# 							lastMark = j+1;
+# 							skip = true;
+# 						}
+# 					}
+# 				}
+# 			}
+# 			temp--;
+# 			queue.enqueue(dataOut);
+# 		}
+# 	}
+# 	while(sTemp.stackCount() > 0)
+# 	{
+# 		sTemp.popStack(stackNo);
+# 		nBase.pushStack(stackNo);
+# 	}
+# 	return queue;
+
+    def var_ground_queue(self):
+        """
+            if varLit true return the number of variables
+            if varLit false return the number of ground predicates
+            variable is defined as being between brackets () and all upper case
+            ground predicate being defined as a block of characters, not all of which are uppercase
+        """
+        pass
+
+# /*
+# 	if varLit true return the number of variables
+# 	if varLit false return the number of ground predicates
+# 	variable is defined as being between brackets () and all upper case
+# 	ground predicate being defined as a block of characters, not all of which are uppercase
+# */
+#  Queue<string>& varGroundQueue(Queue<string> &queue)
+# {
+# 	Queue<string> qTemp, lit;
+# 	qTemp = copyQueue(queue, qTemp);
+# 	int litCount = 0, varCount = 0, temp = queue.queueCount(), pos = 0, lastMark = 0, nextTemp = 0;
+# 	string dataOut, process;
+# 	bool skip = false;
+# 	while(temp)
+# 	{
+# 		qTemp.dequeue(dataOut);
+# 		pos = dataOut.size();
+# 		for(int i = 0; i < pos; i++)
+# 		{
+# 			if(dataOut[i] == '(')
+# 			{
+# 				skip = false;
+# 				lastMark = i+1;
+# 				for(int j = i; (j < pos)&&(!skip); j++)
+# 				{
+# 					if(dataOut[j] == ',')
+# 					{
+# 						process = dataOut.substr(lastMark, (j-lastMark));
+# 						process = removeSpaces(process);
+#
+# 						litCount++;
+# 						lit.enqueue(process);
+#
+# 						lastMark = j+1;
+# 					}
+# 					if(dataOut[j] == ')')
+# 					{
+# 						process = dataOut.substr(lastMark, (j-lastMark));
+# 						process = removeSpaces(process);
+#
+# 						litCount++;
+# 						lit.enqueue(process);
+#
+# 						lastMark = j+1;
+# 						skip = true;
+# 					}
+# 				}
+# 			}
+# 		}
+# 		temp--;
+# 	}
+#
+# 	temp = lit.queueCount();
+# 	while(temp > 0)
+# 	{
+# 		lit.dequeue(dataOut);
+#
+# 		nextTemp = lit.queueCount();
+# 		while(nextTemp > 0)
+# 		{
+# 			lit.dequeue(process);
+# 			if(dataOut != process)
+# 			{
+# 				lit.enqueue(process);
+# 			}
+# 			else
+# 			{
+# 				--temp;
+# 			}
+# 			nextTemp--;
+# 		}
+# 		temp--;
+# 		lit.enqueue(dataOut);
+# 	}
+#
+# 	queue = copyQueue(lit, queue);
+#
+# 	return queue;
+# }
+
+
 if __name__ == '__main__':
-    session = elp.elp("worldviews\\interview.txt")
-    grounder = grounding(session)
+    session = elp.elp('worldviews\\interview.txt')
+    grounder = Grounder(session)
     base = []
     
     try:
         while 1:
-            incObj = grounder.incString(base, 3, 4)
+            incObj = grounder.increment_string(base, 3, 4)
     except StopIteration:
-        
-    finally:
-        print base
-        os.system("pause")
+        pass
+
+    print base
+    os.system('pause')
