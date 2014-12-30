@@ -1,3 +1,22 @@
+"""
+    Wviews: Worldview Solver for Epistemic Logic Programs
+        Build 1.0 - Port from C++ -> Python.
+    Copyright (C) 2014  Michael Kelly
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+"""
+
 import os
 import re
 import copy
@@ -59,14 +78,6 @@ class Atom(object):
 class WorldViews(object):
     """
     **************************************************************************
-        elp: Epistemic Answer Set Logic Program Interpreter
-        Build 1.1 - Port from C++ -> Python.
-
-        School of Computing and Mathematics,
-          Intelligent Systems Laboratory,
-           University of Western Sydney,
-                  Penrith Campus.
-
         Author - Michael Kelly BSc CompSci (Hons.), PhD Candidate.
 
         Summary: This program reads in programs containing lists of
