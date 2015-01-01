@@ -18,7 +18,7 @@
 
 import os
 import math
-import elp
+import wviews
 
 
 class Grounder(object):
@@ -368,7 +368,7 @@ class Grounder(object):
 
 
 if __name__ == '__main__':
-    session = elp.elp('worldviews\\interview.txt')
+    session = wviews.elp('worldviews\\interview.txt')
     grounder = Grounder(session)
     base = []
     

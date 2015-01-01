@@ -17,7 +17,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from elp import EpistemicModality, Atom
+from program.atom import EpistemicModality, Atom
 
 
 class LogicProgram(object):
@@ -30,7 +30,10 @@ class LogicProgram(object):
         self.program = []
 
     def get_evaluated_program(self):
-        self.program
+        """
+            Returns the program as a list of strings that can be output to file.
+        """
+        return [str(rule) for rule in self.program]
 
     def index_epistemic_atoms(self, program_handle):
         """

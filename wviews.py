@@ -21,89 +21,16 @@ import os
 import re
 import copy
 import math
-import grounder
-import parser
+import sys
+
 from answer_set import parse_answer_sets
 from optimisation import LogicProgram
-import sys
+from program import parser
 
 
 class WorldViewsOptimisation(object):
     def __init__(self, file_name):
         pass
-
-
-class EpistemicModality(object):
-    KNOW = 1
-    BELIEVE = 2
-
-
-class Atom(object):
-    def __init__(self, atom_id, epistemic_id, label, atom_negation=False, epistemic_modality=None,
-                 epistemic_negation=False, negation_as_failure=False, valuation=False):
-        self.atom_id = atom_id
-        self.epistemic_id = epistemic_id
-        self.atom_negation = atom_negation
-        self.label = label
-        self.modality = epistemic_modality
-        self.epistemic_negation = epistemic_negation
-        self.negation_as_failure = negation_as_failure
-        self.valuation = valuation
-        if self.modality is None and self.epistemic_negation:
-            raise ValueError
-
-    @property
-    def modality_string(self):
-        if self.modality is not None:
-            return 'K' if self.modality == EpistemicModality.KNOW else 'M'
-        return ''
-
-    @property
-    def valuation_string(self, apply_valuation=False):
-        if apply_valuation and not self.valuation:
-            return ''
-        return '%s%s' % ('-' if self.atom_negation else '', self.label)
-
-    def __str__(self):
-        return '%s%s%s%s' % ('-' if self.epistemic_negation else '', self.modality_string,
-                             '-' if self.atom_negation else '', self.label)
-
-    def __eq__(self, other):
-        return self.__dict__ == other.__dict__
-
-    def __hash__(self):
-        return hash(self.__str__())
-
-
-class Rule(object):
-    def __init__(self, head, tail):
-        self.head = head
-        self.tail = tail
-
-    def parse_rule_string(self, rule_string):
-
-        body = rule_string.split(':-')
-        if len(body) == 1:  # atom or disjunctive atom
-            self.head = {token.strip() for token in body[0].strip().split(' v ')}
-        elif len(body) == 2:  # rule or constraint
-            self.head = {token.strip().replace(' ', '') for token in body[0].split(' v ')}
-            self.tail = set()
-            for token in body[1].split(','):
-                if token.strip().startswith('not '):
-                    token = token.replace(' ', '')
-                self.tail.add(token.strip())
-        return self
-
-    def get_rule_head_string(self):
-        return ' v '.join([str(atom) for atom in self.head])
-
-    def get_rule_tail_string(self):
-        return ', '.join([str(atom) for atom in self.tail])
-
-    def get_rule_string(self):
-        if self.tail:
-            return '%s :- %s.' % (self.get_rule_head_string(), self.get_rule_tail_string())
-        return '%s.' % self.get_rule_head_string()
 
 
 class WorldViews(object):
