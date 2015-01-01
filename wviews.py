@@ -106,6 +106,19 @@ class WorldViews(object):
             if not atom.epistemic_negation and not one_instance:  # POSITIVE BELIEF
                 return not atom.valuation
 
+    def check_valuation_validity(self, possible_world_view, epistemic_program):
+        """
+            #goal: extract the current evaluation on the modal atom
+            #     - with the given binary evaluation, the epistemic atom and the found worldview
+            #     - if the evaluation is satisfied by the worldview return true
+            #     - otherwise for any given epistemic atom and its evaluation, if one fails the whole
+            #       evaluation fails.
+        """
+        for _, epistemic_atom in epistemic_program.epistemic_atom_cache.iteritems():
+            if not self.check_atom_valuation(possible_world_view, epistemic_atom):
+                return False
+        return True
+
     @staticmethod
     def translate_modality(eval):
         """
@@ -126,38 +139,6 @@ class WorldViews(object):
             mod = '-' + mod
         return mod
 
-    def check_validity(self, answer_set, stat_struct, debug=0):
-        """
-            #goal: extract the current evaluation on the modal atom
-            #     - with the given binary evaluation, the epistemic atom and the found worldview
-            #     - if the evaluation is satisfied by the worldview return true
-            #     - otherwise for any given epistemic atom and its evaluation, if one fails the whole
-            #       evaluation fails.
-        """
-        for line in stat_struct:
-            for mod in stat_struct[line]:
-                if not self.check_atom_valuation(answer_set, mod[2], mod[3], mod[4]):
-                    return False
-        return True
-
-    @staticmethod
-    def parse_answer_set(queue):
-        """
-            parse_answer_set: takes unformatted queue of answerset values and removes formatting, making a list of lists
-        """
-        answer_set_regex = re.compile(r'{([\W\w]*)}')
-        temp_list = []
-        return_list = []
-        for line in queue:
-            if answer_set_regex.search(line):
-                counter = answer_set_regex.search(line)
-                line = counter.group(1)
-                temp_list = line.split(',')
-                for index in range(0, len(temp_list)):
-                    temp_list[index] = temp_list[index].strip()
-            return_list.append(temp_list)
-        return return_list
-
     @staticmethod
     def modal_operator_count(stat_struct):
         return sum([len(stat_struct[key]) for key in stat_struct])
@@ -169,12 +150,12 @@ class WorldViews(object):
             in the case it is false we move the entire rule from the answer set. once this is
             done the answer set is sent to dlv for its stable model
         """
-        modal_op_count = self.modal_operator_count(stat_struct)
-        binary_count = math.pow(2, modal_op_count)
+
+        binary_count = math.pow(2, len(program.epistemic_atom_cache))
         binary_modal_valuation = 0
         good_int_count = 0
 
-        if modal_op_count > 31:
+        if len(program.epistemic_atom_cache) > 31:
             return
 
         # posOpt = self.optimisation_feasibilty(stat_struct)
@@ -190,9 +171,8 @@ class WorldViews(object):
             answer_sets = parse_answer_sets(raw_answer_sets)
             # os.system('pause')
 
-            if self.check_validity(answer_sets, stat_struct):  # checks returned set against original modal set.
+            if self.check_valuation_validity(answer_sets, program):  # checks returned set against original set.
                 yield answer_sets
-                # answer_set = emptyQueue(answer_set);
             # else:
                 # contraCount += 1
             binary_modal_valuation += 1

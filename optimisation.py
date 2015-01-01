@@ -26,7 +26,7 @@ class LogicProgram(object):
         self._epistemic_id = 1
         self._atom_set = set()
         self._atom_cache = {}
-        self._epistemic_atom_cache = {}
+        self.epistemic_atom_cache = {}
         self.program = []
 
     def get_evaluated_program(self):
@@ -77,7 +77,7 @@ class LogicProgram(object):
         self._atom_id += 1
         if atom.modality:
             atom.epistemic_id = self._epistemic_id
-            self._epistemic_atom_cache[atom.epistemic_id] = atom
+            self.epistemic_atom_cache[atom.epistemic_id] = atom
             self._epistemic_id += 1
         return True
 

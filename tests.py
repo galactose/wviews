@@ -81,17 +81,16 @@ class OptimiseTest(TestCase):
         self.assertEqual(self.program.get_or_create_atom(test_atom), False)
 
     def test_check_atom_valuation(self):
-        wviews = WorldViews(file_name=None)
+        worldviews = WorldViews(file_name=None)
         test_atom = Atom(atom_id=None, epistemic_id=None, label='a', atom_negation=False,
                          modality=EpistemicModality.KNOW, epistemic_negation=False, negation_as_failure=False,
                          valuation=True)
-        self.assertTrue(wviews.check_atom_valuation([{'a', 'c'}, {'a'}, {'a', '-e'}], test_atom))
-        self.assertFalse(wviews.check_atom_valuation([{'a', 'c'}, set(), {'a', '-e'}], test_atom))
+        self.assertTrue(worldviews.check_atom_valuation([{'a', 'c'}, {'a'}, {'a', '-e'}], test_atom))
+        self.assertFalse(worldviews.check_atom_valuation([{'a', 'c'}, set(), {'a', '-e'}], test_atom))
         test_atom.epistemic_negation = True
-        self.assertTrue(wviews.check_atom_valuation([{'a', 'c'}, {'a'}, {'-e'}], test_atom))
-        self.assertFalse(wviews.check_atom_valuation([{'a', 'c'}, {'a'}, {'a', '-e'}], test_atom))
+        self.assertTrue(worldviews.check_atom_valuation([{'a', 'c'}, {'a'}, {'-e'}], test_atom))
+        self.assertFalse(worldviews.check_atom_valuation([{'a', 'c'}, {'a'}, {'a', '-e'}], test_atom))
         test_atom.modality = EpistemicModality.BELIEVE
         test_atom.epistemic_negation = False
-
-        self.assertTrue(wviews.check_atom_valuation([{'a', 'c'}, {'a'}, {'-e'}], test_atom))
-        self.assertTrue(wviews.check_atom_valuation([{'a', 'c'}, {'a'}, {'a', '-e'}], test_atom))
+        self.assertTrue(worldviews.check_atom_valuation([{'a', 'c'}, {'a'}, {'-e'}], test_atom))
+        self.assertTrue(worldviews.check_atom_valuation([{'a', 'c'}, {'a'}, {'a', '-e'}], test_atom))
