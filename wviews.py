@@ -26,11 +26,7 @@ import sys
 from answer_set import parse_answer_sets
 from optimisation import LogicProgram
 from program import parser
-
-
-class WorldViewsOptimisation(object):
-    def __init__(self, file_name):
-        pass
+from program.atom import EpistemicModality
 
 
 class WorldViews(object):
@@ -60,19 +56,12 @@ class WorldViews(object):
         parser_handle = parser.parse_program(file_name)
         self.stats = LogicProgram(parser_handle)
 
-    def groundPredicates(self):
-        pass
-
-    def elpSession(self, program):
-        pass
-
-    def findFacts(self, program):
-        pass
-
     @staticmethod
-    def compare_atoms(world_view, atom, valuation, debug=0):
+    def check_atom_valuation(possible_world_view, atom, debug=False):
         """
-            compare_answer_set_atoms:
+            Given a possible world view and an epistemic atom which has an applied valuation, return True if the
+            valuation against the atom was correct given the occurrences of the atom in the possible world view and
+            the modal operator associated with the atom.
 
             - world_view: a returned answer set
             - data, epAtom Position
@@ -83,39 +72,39 @@ class WorldViews(object):
         answer_set_count = 0
         one_instance = False
 
-        for answer_set in world_view:
+        for answer_set in possible_world_view:
             if atom.valuation_string in answer_set:
                 universal_count += 1
                 one_instance = True
+                if atom.modality == EpistemicModality.BELIEVE:
+                    break
             answer_set_count += 1
 
         if debug:
-            sys.stdout.write('wView: %s,\n modalOpType: %s,\natom: %s,\nvaluation: %s,\nuniversalCount: %s,'
-                             '\nendsetCount: %s,\noneInstance: %s' % (world_view, modal_operation_type, atom, valuation,
-                                                                      universal_count, answer_set_count, one_instance))
+            sys.stdout.write(
+                'wView: %s,\natom: %s,\nvaluation: %s,\nuniversalCount: %s,\nendsetCount: %s,\noneInstance: %s' %
+                (possible_world_view, atom, atom.valuation, universal_count, answer_set_count, one_instance)
+            )
 
-        if modal_operation_type & 0x2 == 0x2:  # KNOWS
-            if modal_operation_type & 0x4 == 0x4:  # NEGATED KNOWLEDGE
-                if universal_count == answer_set_count:  # IF atom present in all answer sets
-                    return not valuation
-                else:  # IF NOT present in all answer sets
-                    return valuation
-            else:  # POSITIVE KNOWLEDGE
-                if universal_count == answer_set_count:
-                    return valuation
-                else:
-                    return not valuation
-        else:  # BELIEVES
-            if modal_operation_type & 0x4 == 0x4:  # NEGATED BELIEF
-                if one_instance:
-                    return not valuation
-                else:
-                    return valuation
-            else:  # POSITIVE BELIEF
-                if one_instance:
-                    return valuation
-                else:
-                    return not valuation
+        if atom.modality == EpistemicModality.KNOW:
+            if atom.epistemic_negation and universal_count == answer_set_count:
+                return not atom.valuation
+            elif not atom.epistemic_negation and universal_count == answer_set_count:
+                return atom.valuation
+            elif not atom.epistemic_negation and universal_count != answer_set_count:
+                return not atom.valuation
+            elif atom.epistemic_negation and universal_count != answer_set_count:
+                return atom.valuation
+
+        elif atom.modality == EpistemicModality.BELIEVE:
+            if atom.epistemic_negation and one_instance:  # NEGATED BELIEF
+                return not atom.valuation
+            elif atom.epistemic_negation and not one_instance:  # NEGATED BELIEF
+                return atom.valuation
+            if not atom.epistemic_negation and one_instance:  # POSITIVE BELIEF
+                return atom.valuation
+            if not atom.epistemic_negation and not one_instance:  # POSITIVE BELIEF
+                return not atom.valuation
 
     @staticmethod
     def translate_modality(eval):
@@ -128,12 +117,12 @@ class WorldViews(object):
         """
         mod = ''
         if (eval & 0x1) == 1:
-            mod = '-'
+            mod = '-'  # 0x1 is atom negation
         if (eval & 0x2) == 2:
-            mod = 'K' + mod
+            mod = 'K' + mod  # 0x2 is epistemic modality, if true its knows, false if believes
         else:
             mod = 'M' + mod
-        if (eval & 0x4) == 4:
+        if (eval & 0x4) == 4: # 0x4 is epistemic negation
             mod = '-' + mod
         return mod
 
@@ -147,7 +136,7 @@ class WorldViews(object):
         """
         for line in stat_struct:
             for mod in stat_struct[line]:
-                if not self.compare_atoms(answer_set, mod[2], mod[3], mod[4]):
+                if not self.check_atom_valuation(answer_set, mod[2], mod[3], mod[4]):
                     return False
         return True
 
@@ -195,15 +184,10 @@ class WorldViews(object):
             # if passCheck:
             good_int_count += 1
             program_copy = self.build_interpreted_program(program, stat_struct, binary_modal_valuation)
-            # print ''
-            # print 'iterpreted program ->'
-            # pprint.pprint(copy)
-            # print ''
             parser.export_rules(program_copy, 'ans.elp')
             os.system('./dlv -silent ans.elp > temp2')
             raw_answer_sets = parser.import_answer_set('temp2')  # builds the answer into a queue
             answer_sets = parse_answer_sets(raw_answer_sets)
-            # print answer_set
             # os.system('pause')
 
             if self.check_validity(answer_sets, stat_struct):  # checks returned set against original modal set.
@@ -215,9 +199,10 @@ class WorldViews(object):
             binary_count -= 1
 
     @staticmethod
-    def print_opt(opt_type, mod_a, mod_b, debug=0):
+    def print_opt(opt_type, mod_a, mod_b, debug=False):
         if debug:
-            print '%s mod: %s, atom: %s, modCompare: %s, atom: %s' % (opt_type, mod_a[1], mod_a[2], mod_b[1], mod_b[2])
+            sys.stdout.write('%s mod: %s, atom: %s, modCompare: %s, atom: %s' %
+                             (opt_type, mod_a[1], mod_a[2], mod_b[1], mod_b[2]))
 
     @staticmethod
     def remove_modal_operators(body, rule, epistemic_atom, begin_position):  # NOT COMPLETE
@@ -269,17 +254,13 @@ class WorldViews(object):
             tempDict[dictionary.keys()[index]] = copy.copy(dictionary[dictionary.keys()[index]])
         for index in range(line_index, len(dictionary.keys())):
             tempDict[dictionary.keys()[index]-1] = copy.copy(dictionary[dictionary.keys()[index]])
-        # print 'tempDict:', tempDict
         return tempDict
 
     @staticmethod
     def remove_all_rule_epistemic_atoms(line):
         temp = []
-        # print 'remove_all_epistemic_atoms(', line, ')'
         if isinstance(line, list):
             for index in range(0, len(line)):
-                # print 'remove_all_epistemic_atoms(line) -> index:', index
-                # print 'remove_all_epistemic_atoms(line) -> line[index]:', line[index]
                 if not line[index].find('K') != -1 and not line[index].find('M') != -1:
                     temp.append(line[index])
         if not len(temp):
@@ -309,10 +290,7 @@ class WorldViews(object):
             for epAtom in stat_struct[line]:
                 if epAtom[4] == 0:
                     flag = True
-                    # print 'found 0, breaking'
                     break
-            # os.system('pause')
-            # print 'flag:', flag
             if flag:
                 valuation[line].append(1)
             else:
@@ -320,15 +298,12 @@ class WorldViews(object):
                 if not valuation[line][1]:
                     valuation[line] = valuation[line][0]
 
-        # pprint.pprint(valuation)
         total = len(valuation)
         tempValuation = []
         for line in valuation:
-            # print 'line[-1]:', line[-1]
             if line[-1] != 1:
                 tempValuation.append(line)
 
-        # pprint.pprint(tempValuation)
         return tempValuation
 
     def run_session(self):
@@ -352,18 +327,15 @@ class WorldViews(object):
 #
 #     for count in range(0, length):
 #         countString.append(0)
-#     print countString
 #
 #     while 1:
 #         countString = worldview_grounder.incString(countString, base, length)
-#         print countString
 #         os.system('pause')
 
     # 'worldviews\\interview.txt'
     # for inst in files:
     #    session = elp('worldviews\\' + inst)
     #    session.run_session()
-    #    print 'im here!'
     #    os.system('pause')
     #    os.system('cls')
     #    del session

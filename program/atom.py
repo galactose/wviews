@@ -5,13 +5,13 @@ class EpistemicModality(object):
 
 
 class Atom(object):
-    def __init__(self, atom_id, epistemic_id, label, atom_negation=False, epistemic_modality=None,
+    def __init__(self, atom_id, epistemic_id, label, atom_negation=False, modality=None,
                  epistemic_negation=False, negation_as_failure=False, valuation=True):
         self.atom_id = atom_id
         self.epistemic_id = epistemic_id
         self.atom_negation = atom_negation
         self.label = label
-        self.modality = epistemic_modality
+        self.modality = modality
         self.epistemic_negation = epistemic_negation
         self.negation_as_failure = negation_as_failure
         self.valuation = valuation

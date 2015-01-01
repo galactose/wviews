@@ -93,17 +93,17 @@ class LogicProgram(object):
         """
 
         atom_negation = False
-        epistemic_modality = None
+        modality = None
         epistemic_negation = False
         negation_as_failure = False
 
         if atom_token.find('K') != -1 or atom_token.find('M') != -1:  # it's an epistemic atom
-            epistemic_modality = EpistemicModality.BELIEVE
+            modality = EpistemicModality.BELIEVE
             epistemic_modality_index = atom_token.find('M')
             label = atom_token[1:]
             if epistemic_modality_index == -1:
                 epistemic_modality_index = atom_token.find('K')
-                epistemic_modality = EpistemicModality.KNOW
+                modality = EpistemicModality.KNOW
             if epistemic_modality_index != 0 and atom_token[epistemic_modality_index - 1] in ('-', '~'):
                 epistemic_negation = True
                 label = atom_token[epistemic_modality_index + 1:]
@@ -121,9 +121,9 @@ class LogicProgram(object):
                 negation_as_failure = True
                 label = atom_token[4:]
 
-        atom = Atom(atom_id=None, epistemic_id=None, label=label,
-                    epistemic_modality=epistemic_modality, epistemic_negation=epistemic_negation,
-                    atom_negation=atom_negation, negation_as_failure=negation_as_failure)
+        atom = Atom(atom_id=None, epistemic_id=None, label=label, modality=modality,
+                    epistemic_negation=epistemic_negation, atom_negation=atom_negation,
+                    negation_as_failure=negation_as_failure)
 
         created = self.get_or_create_atom(atom)
 

@@ -15,7 +15,7 @@ class Rule(object):
                 self.head = None
             self.tail = set()
             for token in body[1].split(','):
-                if token.strip().startswith('not '):
+                if not token.strip().startswith('not '):
                     token = token.replace(' ', '')
                 self.tail.add(token.strip())
         return self

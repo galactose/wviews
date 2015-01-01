@@ -1,29 +1,9 @@
 from unittest import TestCase
+from mock import MagicMock
 
-from mock import patch, MagicMock
-from program import parser
-from program.rule import Rule
 from program.atom import Atom, EpistemicModality
 from optimisation import LogicProgram
-
-
-class ParserTest(TestCase):
-    def test_get_sanitised_program_lines_no_file(self):
-        line_generator = parser.get_sanitised_lines('')
-        with self.assertRaises(StopIteration):
-            line_generator.next()
-
-    @patch('__builtin__.file', autospec=True)
-    def test_get_sanitised_program_lines_file(self, file_mock):
-        file_mock.return_value = ['a :- b, c. %test comment', 'd :- e.', 'e. %another comment', ':- g, h, i.']
-        line_generator = parser.get_program_lines('fake_file.elp')
-        self.assertEqual(line_generator.next(), 'a :- b, c')
-        self.assertEqual(line_generator.next(), 'd :- e')
-        self.assertEqual(line_generator.next(), 'e')
-        self.assertEqual(line_generator.next(), ':- g, h, i')
-        with self.assertRaises(StopIteration):
-            line_generator.next()
-        file_mock.assert_called_once_with('fake_file.elp', 'r')
+from wviews import WorldViews
 
 
 class OptimiseTest(TestCase):
@@ -90,12 +70,28 @@ class OptimiseTest(TestCase):
         self.assertEqual(test_atom.__dict__, atom_compare_dict)
 
     def test_get_or_create_atom(self):
-        test_atom = Atom(atom_id=None, epistemic_id=None, label='a', epistemic_modality=EpistemicModality.KNOW,
+        test_atom = Atom(atom_id=None, epistemic_id=None, label='a', modality=EpistemicModality.KNOW,
                          epistemic_negation=False, atom_negation=False, negation_as_failure=False)
         self.assertEqual(self.program.get_or_create_atom(test_atom), True)
-        test_atom = Atom(atom_id=None, epistemic_id=None, label='a', epistemic_modality=EpistemicModality.KNOW,
+        test_atom = Atom(atom_id=None, epistemic_id=None, label='a', modality=EpistemicModality.KNOW,
                          epistemic_negation=False, atom_negation=True, negation_as_failure=False)
         self.assertEqual(self.program.get_or_create_atom(test_atom), True)
-        test_atom = Atom(atom_id=None, epistemic_id=None, label='a', epistemic_modality=EpistemicModality.KNOW,
+        test_atom = Atom(atom_id=None, epistemic_id=None, label='a', modality=EpistemicModality.KNOW,
                          epistemic_negation=False, atom_negation=True, negation_as_failure=False)
         self.assertEqual(self.program.get_or_create_atom(test_atom), False)
+
+    def test_check_atom_valuation(self):
+        wviews = WorldViews(file_name=None)
+        test_atom = Atom(atom_id=None, epistemic_id=None, label='a', atom_negation=False,
+                         modality=EpistemicModality.KNOW, epistemic_negation=False, negation_as_failure=False,
+                         valuation=True)
+        self.assertTrue(wviews.check_atom_valuation([{'a', 'c'}, {'a'}, {'a', '-e'}], test_atom))
+        self.assertFalse(wviews.check_atom_valuation([{'a', 'c'}, set(), {'a', '-e'}], test_atom))
+        test_atom.epistemic_negation = True
+        self.assertTrue(wviews.check_atom_valuation([{'a', 'c'}, {'a'}, {'-e'}], test_atom))
+        self.assertFalse(wviews.check_atom_valuation([{'a', 'c'}, {'a'}, {'a', '-e'}], test_atom))
+        test_atom.modality = EpistemicModality.BELIEVE
+        test_atom.epistemic_negation = False
+
+        self.assertTrue(wviews.check_atom_valuation([{'a', 'c'}, {'a'}, {'-e'}], test_atom))
+        self.assertTrue(wviews.check_atom_valuation([{'a', 'c'}, {'a'}, {'a', '-e'}], test_atom))
