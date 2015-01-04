@@ -90,7 +90,6 @@ class OptimiseTest(TestCase):
         worldviews = WorldViews(file_name=None)
         test_atom = Atom(atom_id=None, label='a', atom_negation=False, modality=EpistemicModality.KNOW,
                          epistemic_negation=False, negation_as_failure=False, valuation=True)
-        print test_atom.valuation_string()
         self.assertTrue(worldviews.check_atom_valuation([{'a', 'c'}, {'a'}, {'a', '-e'}], test_atom))
 
         self.assertFalse(worldviews.check_atom_valuation([{'a', 'c'}, set(), {'a', '-e'}], test_atom))
