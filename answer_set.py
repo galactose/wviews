@@ -19,7 +19,7 @@
 import re
 
 
-def parse_answer_sets(raw_answer_sets):
+def parse_answer_sets(raw_worldview):
     """
         parse_answer_set: takes unformatted queue of answerset values and removes formatting, making a list of lists
 
@@ -27,11 +27,10 @@ def parse_answer_sets(raw_answer_sets):
          * answer_sets (list(str)) - a list of unformatted strings
     """
     answer_set_regex = re.compile(r'{([\W\w]*)}')
-    answer_set = []
-    answer_sets = []
-    for line in raw_answer_sets:
+    worldview = []
+    for line in raw_worldview:
         regex_object = answer_set_regex.search(line)
         if regex_object:
-            answer_set = [answer_set_token.strip() for answer_set_token in regex_object.group(1).split(',')]
-        answer_sets.append(answer_set)
-    return answer_sets
+            answer_set = {worldview_token.strip() for worldview_token in regex_object.group(1).split(',')}
+            worldview.append(answer_set)
+    return worldview

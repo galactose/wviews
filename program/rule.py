@@ -1,9 +1,13 @@
 
+class BrokenConstraint(Exception):
+    pass
+
 
 class Rule(object):
-    def __init__(self, head, tail):
-        self.head = head
-        self.tail = tail
+    def __init__(self, rule_string):
+        self.head = set()
+        self.tail = set()
+        self.parse_rule_string(rule_string)
 
     def parse_rule_string(self, rule_string):
         body = rule_string.split(':-')
@@ -12,23 +16,52 @@ class Rule(object):
         elif len(body) == 2:  # rule or constraint
             self.head = {token.strip().replace(' ', '') for token in body[0].split(' v ')}
             if len(self.head) == 1 and '' in self.head:
-                self.head = None
-            self.tail = set()
+                self.head = set()
             for token in body[1].split(','):
                 if not token.strip().startswith('not '):
                     token = token.replace(' ', '')
                 self.tail.add(token.strip())
-        return self
-
-    def get_rule_head_string(self):
-        return ' v '.join([str(atom) for atom in self.head])
-
-    def get_rule_tail_string(self):
-        return ', '.join([str(atom) for atom in self.tail])
+        return [self.head, self.tail]
 
     def __str__(self):
-        if self.tail and self.head:
-            return '%s :- %s.' % (self.get_rule_head_string(), self.get_rule_tail_string())
+        if self.head and self.tail:
+            return '%s :- %s.' % (' v '.join(self.head), ', '.join(self.tail))
+        if self.tail:
+            return ':- %s.' % ', '.join(self.tail)
+        return '%s.' % (' v '.join(self.head))
+
+
+class IndexedRule(object):
+    def __init__(self, head, tail, atom_dict=None):
+        self.head = head
+        self.tail = tail
+        self.atom_dict = atom_dict
+
+    def get_rule_head_string(self):
+        return ' v '.join([str(self.atom_dict[atom]) for atom in self.head])
+
+    def get_rule_tail_string(self, apply_valuation=False):
+        if apply_valuation:
+            rule_tail = []
+            for atom_id in self.tail:
+                evaluated_atom = self.atom_dict[atom_id].valuation_string(apply_valuation)
+                if evaluated_atom:
+                    rule_tail.append(evaluated_atom)
+            return ', '.join(rule_tail)
+        return ', '.join([str(self.atom_dict[atom]) for atom in self.tail])
+
+    def get_rule_string(self, apply_valuation=False):
+        if self.head and self.tail:
+            tail = self.get_rule_tail_string(apply_valuation)
+            if not tail:
+                return '%s.' % self.get_rule_head_string()
+            return '%s :- %s.' % (self.get_rule_head_string(), tail)
         elif self.tail:
-            return ':- %s.' % self.get_rule_tail_string()
+            tail = self.get_rule_tail_string(apply_valuation)
+            if not tail:
+                raise BrokenConstraint
+            return ':- %s.' % self.get_rule_tail_string(apply_valuation)
         return '%s.' % self.get_rule_head_string()
+
+    def __str__(self):
+        return self.get_rule_string()

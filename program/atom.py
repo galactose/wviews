@@ -5,10 +5,9 @@ class EpistemicModality(object):
 
 
 class Atom(object):
-    def __init__(self, atom_id, epistemic_id, label, atom_negation=False, modality=None,
-                 epistemic_negation=False, negation_as_failure=False, valuation=True):
+    def __init__(self, atom_id, label, atom_negation=False, modality=None, epistemic_negation=False,
+                 negation_as_failure=False, valuation=None):
         self.atom_id = atom_id
-        self.epistemic_id = epistemic_id
         self.atom_negation = atom_negation
         self.label = label
         self.modality = modality
@@ -24,9 +23,8 @@ class Atom(object):
             return 'K' if self.modality == EpistemicModality.KNOW else 'M'
         return ''
 
-    @property
     def valuation_string(self, apply_valuation=False):
-        if apply_valuation and not self.valuation:
+        if apply_valuation and self.modality and self.valuation:
             return ''
         return '%s%s' % ('-' if self.atom_negation else '', self.label)
 

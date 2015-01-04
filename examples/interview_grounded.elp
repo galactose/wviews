@@ -1,5 +1,5 @@
- eligible(howard_moon) :- highGPA(howard_moon).#an interview program
-eligible(howard_moon) :- minority(howard_moon), fairGPA(howard_moon). 
-~eligible(howard_moon) :- ~fairGPA(howard_moon), ~highGPA(howard_moon).
- interview(howard_moon) :- ~Keligible(howard_moon), ~K~eligible(howard_moon).
-fairGPA(howard_moon) v highGPA(howard_moon).
+eligible(alice) :- highGPA(alice).#an interview program
+eligible(alice) :- minority(alice), fairGPA(alice).
+~eligible(alice) :- ~fairGPA(alice), ~highGPA(alice).
+interview(alice) :- ~Keligible(alice), ~K~eligible(alice).
+fairGPA(alice) v highGPA(alice).

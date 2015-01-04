@@ -17,14 +17,12 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import os
-import re
-import copy
-import math
 import sys
 
+from subprocess import Popen, PIPE, STDOUT
+from itertools import product
 from answer_set import parse_answer_sets
-from optimisation import LogicProgram
+from program.program import LogicProgram
 from program import parser
 from program.atom import EpistemicModality
 
@@ -51,10 +49,8 @@ class WorldViews(object):
     """
 
     def __init__(self, file_name):
-        self.program = []
-        self.stats = {}
-        parser_handle = parser.parse_program(file_name)
-        self.stats = LogicProgram(parser_handle)
+        self.program_info = LogicProgram(None)
+        self.program_info.index_atoms(parser.parse_program(file_name))
 
     @staticmethod
     def check_atom_valuation(possible_world_view, atom, debug=False):
@@ -73,7 +69,7 @@ class WorldViews(object):
         one_instance = False
 
         for answer_set in possible_world_view:
-            if atom.valuation_string in answer_set:
+            if atom.valuation_string() in answer_set:
                 universal_count += 1
                 one_instance = True
                 if atom.modality == EpistemicModality.BELIEVE:
@@ -106,7 +102,7 @@ class WorldViews(object):
             if not atom.epistemic_negation and not one_instance:  # POSITIVE BELIEF
                 return not atom.valuation
 
-    def check_valuation_validity(self, possible_world_view, epistemic_program):
+    def check_valuation_validity(self, possible_world_view):
         """
             #goal: extract the current evaluation on the modal atom
             #     - with the given binary evaluation, the epistemic atom and the found worldview
@@ -114,13 +110,14 @@ class WorldViews(object):
             #     - otherwise for any given epistemic atom and its evaluation, if one fails the whole
             #       evaluation fails.
         """
-        for _, epistemic_atom in epistemic_program.epistemic_atom_cache.iteritems():
+
+        for _, epistemic_atom in self.program_info.epistemic_atom_cache.iteritems():
             if not self.check_atom_valuation(possible_world_view, epistemic_atom):
                 return False
         return True
 
     @staticmethod
-    def translate_modality(eval):
+    def translate_modality(atom_details):
         """
             transModality:
             PRE:
@@ -129,175 +126,53 @@ class WorldViews(object):
             COMPLETED:
         """
         mod = ''
-        if (eval & 0x1) == 1:
+        if (atom_details & 0x1) == 1:
             mod = '-'  # 0x1 is atom negation
-        if (eval & 0x2) == 2:
+        if (atom_details & 0x2) == 2:
             mod = 'K' + mod  # 0x2 is epistemic modality, if true its knows, false if believes
         else:
             mod = 'M' + mod
-        if (eval & 0x4) == 4: # 0x4 is epistemic negation
+        if (atom_details & 0x4) == 4: # 0x4 is epistemic negation
             mod = '-' + mod
         return mod
 
     @staticmethod
-    def modal_operator_count(stat_struct):
-        return sum([len(stat_struct[key]) for key in stat_struct])
+    def get_valuation_string(epistemic_atom_count):
+        for valuation in product((True, False), repeat=epistemic_atom_count):
+            yield valuation
 
-    def generate_worldview(self, program, stat_struct):
-        """
-            show instantiations: removes modal operators in answer sets by assuming they are
-            true or false, on the case they are true we remove the modal operator and its atom
-            in the case it is false we move the entire rule from the answer set. once this is
-            done the answer set is sent to dlv for its stable model
-        """
-
-        binary_count = math.pow(2, len(program.epistemic_atom_cache))
-        binary_modal_valuation = 0
-        good_int_count = 0
-
-        if len(program.epistemic_atom_cache) > 31:
-            return
-
+    def generate_worldview(self):
         # posOpt = self.optimisation_feasibilty(stat_struct)
-
-        while binary_count:
-            # passCheck = self.evaluation_skip(posOpt, stat_struct, binModEval)
-            # if passCheck:
-            good_int_count += 1
-            program_copy = self.build_interpreted_program(program, stat_struct, binary_modal_valuation)
-            parser.export_rules(program_copy, 'ans.elp')
-            os.system('./dlv -silent ans.elp > temp2')
-            raw_answer_sets = parser.import_answer_set('temp2')  # builds the answer into a queue
-            answer_sets = parse_answer_sets(raw_answer_sets)
-            # os.system('pause')
-
-            if self.check_valuation_validity(answer_sets, program):  # checks returned set against original set.
-                yield answer_sets
+        for valuation in self.get_valuation_string(len(self.program_info.epistemic_atom_cache)):
+            # if self.evaluation_skip(posOpt, stat_struct, binModEval)
+            #     continue
+            evaluated_program = self.program_info.get_evaluated_program_and_apply_valuation(valuation)
+            raw_worldview = self.get_possible_worldview(evaluated_program)
+            world_view = parse_answer_sets(raw_worldview)
+            # checks returned set against original set.
+            #print "WORLDVIEW=>", world_view
+            if self.check_valuation_validity(world_view):
+                yield world_view
             # else:
                 # contraCount += 1
-            binary_modal_valuation += 1
-            binary_count -= 1
+
+    @staticmethod
+    def get_possible_worldview(evaluated_program):
+        p = Popen(['dlv', '-silent','--'], stdout=PIPE, stdin=PIPE, stderr=STDOUT)
+        return p.communicate(input='\n'.join(evaluated_program))[0].split('\n')
 
     @staticmethod
     def print_opt(opt_type, mod_a, mod_b, debug=False):
-        if debug:
-            sys.stdout.write('%s mod: %s, atom: %s, modCompare: %s, atom: %s' %
-                             (opt_type, mod_a[1], mod_a[2], mod_b[1], mod_b[2]))
+        sys.stdout.write('%s mod: %s, atom: %s, modCompare: %s, atom: %s' %
+                         (opt_type, mod_a[1], mod_a[2], mod_b[1], mod_b[2]))
 
-    @staticmethod
-    def remove_modal_operators(body, rule, epistemic_atom, begin_position):  # NOT COMPLETE
-        """
-            remove_modal_operators: removes the modal operators present at the front of the rule,
-            assumes rule format [a-z* [v a-z*]*] :- [[~|-]K|M[a-z]*,]*[[not]a-z*].
-        """
-        if len(rule) < begin_position or begin_position == 0:
-            return 0
-        if rule[begin_position - 1] == '-' or rule[begin_position - 1] == '~':
-            begin_position -= 1
 
-        for count in range(begin_position, len(rules)):
-            end_position = 0
-            if rule[count] == '.' or rule[count] == ',':
-                end_position = count
+if __name__ == '__main__':
+    world_view = WorldViews('examples/interview_grounded.elp')
+    bla = []
+    for worldview in world_view.generate_worldview():
+        bla.append(worldview)
 
-        if rule[end_position] == '.':
-            rule = rule[:begin_position - 1] + rule[end_position:len(rule)]
-        else:
-            rule = rule[:begin_position - 1] + rule[end_position+1:len(rule)]
-        for count in range(0, len(body)):
-            if body[count].find(epistemic_atom) != -1:
-                pass
-        return rule
-
-    @staticmethod
-    def update_valuation(stat_struct, valuation_string):
-        """
-
-        update_valuation: runs through valuation string and the optimisation structure and
-        """
-        count_b = len(stat_struct)
-        while count_b:
-            count_a = len(stat_struct[stat_struct.keys()[count_b - 1]])
-            while count_a:
-                temp = valuation_string & 0x1
-                valuation_string >>= 1
-                if len(stat_struct[stat_struct.keys()[count_b - 1]][count_a - 1]) == 5:
-                    stat_struct[stat_struct.keys()[count_b - 1]][count_a - 1][4] = temp
-                elif len(stat_struct[stat_struct.keys()[count_b - 1]][count_a - 1]) < 5:
-                    stat_struct[stat_struct.keys()[count_b-1]][count_a-1].append(temp)
-                count_a -= 1
-            count_b -= 1
-
-    def update_index(self, line_index, dictionary):
-        tempDict = {}
-        for index in range(0, line_index):
-            tempDict[dictionary.keys()[index]] = copy.copy(dictionary[dictionary.keys()[index]])
-        for index in range(line_index, len(dictionary.keys())):
-            tempDict[dictionary.keys()[index]-1] = copy.copy(dictionary[dictionary.keys()[index]])
-        return tempDict
-
-    @staticmethod
-    def remove_all_rule_epistemic_atoms(line):
-        temp = []
-        if isinstance(line, list):
-            for index in range(0, len(line)):
-                if not line[index].find('K') != -1 and not line[index].find('M') != -1:
-                    temp.append(line[index])
-        if not len(temp):
-            return
-        else:
-            return temp
-
-    def build_interpreted_program(self, program, stat_struct, valuator_string):
-        """
-            showPossibleSet: Takes in the queue of rules,
-                             the line locations of its modal operators,
-                             the character locations of modal operators,
-                             and the integer value which determines the truth valuation of each modal operator.
-        """
-
-        count = 0
-        flag = False
-        mod_temp = len(stat_struct)
-        if len(program) > 0 and not mod_temp:
-            return stat_struct
-        valuation = copy.deepcopy(program)
-
-        self.update_valuation(stat_struct, valuator_string)
-
-        for line in stat_struct:
-            flag = False
-            for epAtom in stat_struct[line]:
-                if epAtom[4] == 0:
-                    flag = True
-                    break
-            if flag:
-                valuation[line].append(1)
-            else:
-                valuation[line][1] = self.remove_all_rule_epistemic_atoms(valuation[line][1])
-                if not valuation[line][1]:
-                    valuation[line] = valuation[line][0]
-
-        total = len(valuation)
-        tempValuation = []
-        for line in valuation:
-            if line[-1] != 1:
-                tempValuation.append(line)
-
-        return tempValuation
-
-    def run_session(self):
-        world_view_count = 0
-        try:
-            world_view = self.generate_worldview(self.program, self.stats)
-            while True:
-                world_view_count += 1
-                sys.stdout.write(world_view.next())
-        except StopIteration:
-            del self
-
-# if __name__ == '__main__':
-#     file_path = os.getcwd() + '\\worldviews'
 #     files = os.listdir('worldviews')
 #     session = WorldViews('worldviews\\interview.txt')
 #     worldview_grounder = grounder.grounding(session)
@@ -310,12 +185,3 @@ class WorldViews(object):
 #
 #     while 1:
 #         countString = worldview_grounder.incString(countString, base, length)
-#         os.system('pause')
-
-    # 'worldviews\\interview.txt'
-    # for inst in files:
-    #    session = elp('worldviews\\' + inst)
-    #    session.run_session()
-    #    os.system('pause')
-    #    os.system('cls')
-    #    del session

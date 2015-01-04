@@ -38,7 +38,7 @@ def parse_program(file_name):
      - file_name (str) - the path to the logic program to be analysed
     """
     for line in get_program_lines(file_name):
-        yield Rule(head=None, tail=None).parse_rule_string(line)
+        yield Rule(line)
 
 
 def get_program_lines(file_name):
