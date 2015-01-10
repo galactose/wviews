@@ -150,7 +150,6 @@ class WorldViews(object):
             raw_worldview = self.get_possible_worldview(evaluated_program)
             world_view = parse_answer_sets(raw_worldview)
             # checks returned set against original set.
-            #print "WORLDVIEW=>", world_view
             if self.check_valuation_validity(world_view):
                 yield world_view
             # else:

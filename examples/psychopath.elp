@@ -1,6 +1,6 @@
-dangerous(sam) :- angry(sam), psychopath(sam).
-~dangerous(sam) :- ~angry(sam).
+dangerous(sam) :- violent(sam), psychopath(sam).
+~dangerous(sam) :- ~violent(sam).
 ~dangerous(sam) :- ~psychopath(sam).
-~angry(sam) :- ~Mangry(sam).
+~violent(sam) :- ~Mviolent(sam).
 ~psychopath(sam) :- ~Mpsychopath(sam).
-angry(sam) v psychopath(sam).
+violent(sam) v psychopath(sam).

@@ -149,7 +149,7 @@ class LogicProgram(object):
             if atom.modality:
                 modal_atom_in_rule = True
                 atom.valuation = valuation_tuple[self.epistemic_atom_id_to_valuation_index_map[atom_id]]
-                if false_valuation:
+                if not atom.valuation:
                     false_valuation = True
         return rule.get_rule_string(apply_valuation=True) if not false_valuation or not modal_atom_in_rule else ''
 
