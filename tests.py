@@ -25,18 +25,20 @@ class EndToEndTest(TestCase):
         self.assertEqual(worldview_generator.next(), [{'-dangerous(sam)', '-violent(sam)', 'psychopath(sam)'}])
         self.assertEqual(worldview_generator.next(), [{'psychopath(sam)'}, {'violent(sam)'}])
 
+    def test_inconsistent(self):
+        world_view_generator = WorldViews('examples/inconsistent.elp').generate_worldview()
+        self.assertEqual(world_view_generator.next(), [{'a'}])
+        self.assertRaises(StopIteration, world_view_generator.next)
+
     # def test_epistemic(self):
     #     world_view_generator = WorldViews('examples/epistemic.elp')
     #     test_worldview = world_view_generator.generate_worldview().next()
-    #     self.assertSetEqual(test_worldview[0], {'p'})
     #     self.assertSetEqual(test_worldview[0], {})
 
-    # def test_inconsistent(self):
-    #     world_view_generator = WorldViews('examples/inconsistent.elp')
-    #     test_worldview = world_view_generator.generate_worldview().next()
-    #     print test_worldview
-    #     #self.assertSetEqual(test_worldview[0], {'a', 'b', 'c'})
-    #     test_worldview = world_view_generator.generate_worldview().next()
+    def test_same(self):
+        world_view_generator = WorldViews('examples/same.elp').generate_worldview()
+        self.assertEqual(world_view_generator.next(), [{'d', 'c'}])
+        self.assertRaises(StopIteration, world_view_generator.next)
 
 
 class OptimiseTest(TestCase):
