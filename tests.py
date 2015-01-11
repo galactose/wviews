@@ -47,70 +47,70 @@ class OptimiseTest(TestCase):
 
     def test_get_atom_information(self):
         self.assertEqual(self.program.get_atom_information('-K-a').__dict__,
-                         {'atom_id': 1, 'atom_negation': True, 'epistemic_negation': True,
+                         {'atom_id': 1, 'label_id': 1, 'atom_negation': True, 'epistemic_negation': True,
                           'label': 'a', 'modality': 1, 'negation_as_failure': False, 'valuation': None})
 
         self.assertEqual(self.program.get_atom_information('-Ka').__dict__,
-                         {'atom_id': 2, 'atom_negation': False, 'epistemic_negation': True,
+                         {'atom_id': 2, 'label_id': 1, 'atom_negation': False, 'epistemic_negation': True,
                           'label': 'a', 'modality': 1, 'negation_as_failure': False, 'valuation': None})
 
         self.assertEqual(self.program.get_atom_information('K-a').__dict__,
-                         {'atom_id': 3, 'atom_negation': True, 'epistemic_negation': False,
+                         {'atom_id': 3, 'label_id': 1, 'atom_negation': True, 'epistemic_negation': False,
                           'label': 'a', 'modality': 1, 'negation_as_failure': False, 'valuation': None})
 
         self.assertEqual(self.program.get_atom_information('Ka').__dict__,
-                         {'atom_id': 4, 'atom_negation': False, 'epistemic_negation': False,
+                         {'atom_id': 4, 'label_id': 1, 'atom_negation': False, 'epistemic_negation': False,
                          'label': 'a', 'modality': 1, 'negation_as_failure': False, 'valuation': None})
 
         self.assertEqual(self.program.get_atom_information('Ma').__dict__,
-                         {'atom_id': 5, 'atom_negation': False, 'epistemic_negation': False,
+                         {'atom_id': 5, 'label_id': 1, 'atom_negation': False, 'epistemic_negation': False,
                          'label': 'a', 'modality': 2, 'negation_as_failure': False, 'valuation': None})
 
         self.assertEqual(self.program.get_atom_information('M-b').__dict__,
-                         {'atom_id': 6, 'atom_negation': True, 'epistemic_negation': False,
+                         {'atom_id': 6, 'label_id': 2, 'atom_negation': True, 'epistemic_negation': False,
                           'label': 'b', 'modality': 2, 'negation_as_failure': False, 'valuation': None})
 
         self.assertEqual(self.program.get_atom_information('-M-b').__dict__,
-                         {'atom_id': 7, 'atom_negation': True, 'epistemic_negation': True,
+                         {'atom_id': 7, 'label_id': 2, 'atom_negation': True, 'epistemic_negation': True,
                           'label': 'b', 'modality': 2, 'negation_as_failure': False, 'valuation': None})
 
         self.assertEqual(self.program.get_atom_information('-Mb').__dict__,
-                         {'atom_id': 8, 'atom_negation': False, 'epistemic_negation': True,
+                         {'atom_id': 8, 'label_id': 2, 'atom_negation': False, 'epistemic_negation': True,
                           'label': 'b', 'modality': 2, 'negation_as_failure': False, 'valuation': None})
 
         self.assertEqual(self.program.get_atom_information('c').__dict__,
-                         {'atom_id': 9, 'atom_negation': False, 'epistemic_negation': False,
+                         {'atom_id': 9, 'label_id': 3, 'atom_negation': False, 'epistemic_negation': False,
                           'label': 'c', 'modality': None, 'negation_as_failure': False, 'valuation': None})
 
         self.assertEqual(self.program.get_atom_information('-e').__dict__,
-                         {'atom_id': 10, 'atom_negation': True, 'epistemic_negation': False,
+                         {'atom_id': 10, 'label_id': 4, 'atom_negation': True, 'epistemic_negation': False,
                           'label': 'e', 'modality': None, 'negation_as_failure': False, 'valuation': None})
 
         self.assertEqual(self.program.get_atom_information('not d').__dict__,
-                         {'atom_id': 11, 'atom_negation': False, 'epistemic_negation': False,
+                         {'atom_id': 11, 'label_id': 5, 'atom_negation': False, 'epistemic_negation': False,
                           'label': 'd', 'modality': None, 'negation_as_failure': True, 'valuation': None})
 
         self.assertEqual(self.program.get_atom_information('not full_atom').__dict__,
-                         {'atom_id': 12, 'atom_negation': False, 'epistemic_negation': False, 'label': 'full_atom',
-                          'modality': None, 'negation_as_failure': True, 'valuation': None})
+                         {'atom_id': 12, 'label_id': 6, 'atom_negation': False, 'epistemic_negation': False,
+                          'label': 'full_atom', 'modality': None, 'negation_as_failure': True, 'valuation': None})
 
         self.assertRaises(ValueError, self.program.get_atom_information, 'not -d')
         self.assertRaises(ValueError, self.program.get_atom_information, 'not ~d')
 
     def test_get_or_create_atom(self):
-        test_atom = Atom(atom_id=None, label='a', modality=EpistemicModality.KNOW,
+        test_atom = Atom(atom_id=None, label_id=None, label='a', modality=EpistemicModality.KNOW,
                          epistemic_negation=False, atom_negation=False, negation_as_failure=False)
         self.assertEqual(self.program.get_or_create_atom(test_atom), True)
-        test_atom = Atom(atom_id=None, label='a', modality=EpistemicModality.KNOW,
+        test_atom = Atom(atom_id=None, label_id=None, label='a', modality=EpistemicModality.KNOW,
                          epistemic_negation=False, atom_negation=True, negation_as_failure=False)
         self.assertEqual(self.program.get_or_create_atom(test_atom), True)
-        test_atom = Atom(atom_id=None, label='a', modality=EpistemicModality.KNOW,
+        test_atom = Atom(atom_id=None, label_id=None, label='a', modality=EpistemicModality.KNOW,
                          epistemic_negation=False, atom_negation=True, negation_as_failure=False)
         self.assertEqual(self.program.get_or_create_atom(test_atom), False)
 
     def test_check_atom_valuation(self):
         worldviews = WorldViews(file_name=None)
-        test_atom = Atom(atom_id=None, label='a', atom_negation=False, modality=EpistemicModality.KNOW,
+        test_atom = Atom(atom_id=None, label_id=None, label='a', atom_negation=False, modality=EpistemicModality.KNOW,
                          epistemic_negation=False, negation_as_failure=False, valuation=True)
         self.assertTrue(worldviews.check_atom_valuation([{'a', 'c'}, {'a'}, {'a', '-e'}], test_atom))
 

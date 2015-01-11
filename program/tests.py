@@ -9,18 +9,18 @@ from rule import Rule
 class AtomTest(TestCase):
 
     def setUp(self):
-        self.test_atom = Atom(atom_id=None, label='a', atom_negation=True, modality=EpistemicModality.KNOW,
-                              epistemic_negation=True, negation_as_failure=False)
+        self.test_atom = Atom(atom_id=None, label_id=None, label='a', atom_negation=True,
+                              modality=EpistemicModality.KNOW, epistemic_negation=True, negation_as_failure=False)
 
     def test_atom(self):
         self.assertEqual(str(self.test_atom), '-K-a')
 
     def test_equal(self):
         self.assertEqual(self.test_atom,
-                         Atom(atom_id=None, label='a', atom_negation=True, modality=EpistemicModality.KNOW,
-                              epistemic_negation=True, negation_as_failure=False))
+                         Atom(atom_id=None, label_id=None, label='a', atom_negation=True,
+                              modality=EpistemicModality.KNOW, epistemic_negation=True, negation_as_failure=False))
         self.assertEqual(self.test_atom.__hash__(), hash('-K-a'))
-        self.assertRaises(ValueError, Atom, atom_id=None, label='a', atom_negation=True, modality=None,
+        self.assertRaises(ValueError, Atom, atom_id=None, label_id=None, label='a', atom_negation=True, modality=None,
                           epistemic_negation=True, negation_as_failure=False)
 
 

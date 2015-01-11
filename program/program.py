@@ -23,6 +23,10 @@ from rule import IndexedRule
 
 class LogicProgram(object):
     def __init__(self, file_handle):
+        self._label_id = 1
+        self._label_set = set()
+        self._label_cache = {}
+        self._label_id_lookup = {}
         self._atom_id = 1
         self._atom_set = set()
         self._atom_cache = {}
@@ -75,11 +79,19 @@ class LogicProgram(object):
         if str(atom) in self._atom_set:
             return False
 
+        if atom.label not in self._label_id_lookup:
+            atom.label_id = self._label_id
+            self._label_cache[self._label_id] = atom.label
+            self._label_id_lookup[atom.label] = self._label_id
+            self._label_id += 1
+        else:
+            atom.label_id = self._label_id_lookup[atom.label]
         atom.atom_id = self._atom_id
         self._atom_set.add(str(atom))
         self._atom_id_lookup[str(atom)] = atom.atom_id
         self._atom_cache[atom.atom_id] = atom
         self._atom_id += 1
+
         if atom.modality:
             self.epistemic_atom_cache[atom.atom_id] = atom
         return True
@@ -124,7 +136,7 @@ class LogicProgram(object):
                 negation_as_failure = True
                 label = atom_token[4:]
 
-        atom = Atom(atom_id=None, label=label, modality=modality, epistemic_negation=epistemic_negation,
+        atom = Atom(atom_id=None, label_id=None, label=label, modality=modality, epistemic_negation=epistemic_negation,
                     atom_negation=atom_negation, negation_as_failure=negation_as_failure)
 
         created = self.get_or_create_atom(atom)

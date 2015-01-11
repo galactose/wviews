@@ -5,9 +5,10 @@ class EpistemicModality(object):
 
 
 class Atom(object):
-    def __init__(self, atom_id, label, atom_negation=False, modality=None, epistemic_negation=False,
+    def __init__(self, atom_id, label_id, label, atom_negation=False, modality=None, epistemic_negation=False,
                  negation_as_failure=False, valuation=None):
         self.atom_id = atom_id
+        self.label_id = label_id
         self.atom_negation = atom_negation
         self.label = label
         self.modality = modality
@@ -37,3 +38,14 @@ class Atom(object):
 
     def __hash__(self):
         return hash(self.__str__())
+
+
+class EpistemicAtom(Atom):
+    def __init__(self, atom_id, label, atom_negation=False, modality=None, epistemic_negation=False,
+                 negation_as_failure=False, valuation=None, bla=None):
+        super(Atom, self).__init__()
+
+
+class NegationAsFailureAtom(Atom):
+    def __init__(self, atom_id, label, atom_negation=False):
+        super(Atom, self).__init__()
