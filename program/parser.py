@@ -48,7 +48,10 @@ def get_program_lines(file_name):
         # need to implement system such that rules can be staggered over various lines or
         # a line may have multiple rules.
         if not line.index('.') == -1:
-            yield line[:line.index('.') + 1].strip().replace('.', '')
+            for line_section in line.split('.'):
+                raw_token = line_section.strip()
+                if raw_token:
+                    yield raw_token
 
 
 def import_answer_set(file_name=''):
@@ -71,32 +74,3 @@ def get_sanitised_lines(file_name=''):
             yield line
         except ValueError:
             pass
-
-
-def export_rules(queue, filename='ans.elp', debug=0):
-    if debug:
-        sys.stdout.write('export_rules(self, queue, filename = "ans.elp") -> queue\n%s\n' % queue)
-    output = file(filename, 'w')
-    for line in queue:
-        if debug:
-            sys.stdout.write('export_rules(self, queue, filename = "ans.elp") -> line\n%s\n' % line)
-        if isinstance(line[0], list):  # STILL WORKING HERE
-            for head_token_index in range(0, len(line[0])):
-                output.write(line[0][head_token_index])
-                if head_token_index != len(line[0]) - 1:
-                    output.write(' v ')
-
-            output.write(' :- ')
-            for tail in range(0, len(line[1])):
-                output.write(line[1][tail])
-                if tail != len(line[1])-1:
-                    output.write(', ')
-
-        elif isinstance(line[0], str):
-            for head_token_index in range(0, len(line)):
-                output.write(line[head_token_index])
-                if head_token_index != len(line)-1:
-                    output.write(' v ')
-        output.write('.\n')
-    output.close()
-    return True

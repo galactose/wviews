@@ -1,4 +1,4 @@
-eligible(alice) :- highGPA(alice).#an interview program
+eligible(alice) :- highGPA(alice).%an interview program
 eligible(alice) :- minority(alice), fairGPA(alice).
 ~eligible(alice) :- ~fairGPA(alice), ~highGPA(alice).
 interview(alice) :- ~Keligible(alice), ~K~eligible(alice).
