@@ -51,3 +51,21 @@ class ParserTest(TestCase):
         with self.assertRaises(StopIteration):
             line_generator.next()
         file_mock.assert_called_once_with('fake_file.elp', 'r')
+
+    @patch('wviews.program.parser.sys', autospec=True)
+    @patch('__builtin__.file', autospec=True)
+    def test_get_sanitised_program_lines_file_error(self, file_mock, sys_mock):
+        file_mock.side_effect = IOError
+        line_generator = parser.get_program_lines('fake_file.elp')
+        self.assertRaises(StopIteration, line_generator.next)
+        sys_mock.stdout.write.assert_called_once_with('\n<file does not exist.>\n')
+
+    @patch('wviews.program.parser.get_sanitised_lines', autospec=True)
+    def test_get_sanitised_lines(self, get_sanitised_lines_mock):
+        get_sanitised_lines_mock.return_value = ['a\n', 'b\n', 'c\n']
+        answer_set_importer = parser.import_answer_set(file_name='test_file_name')
+        self.assertEqual(answer_set_importer.next(), 'a')
+        self.assertEqual(answer_set_importer.next(), 'b')
+        self.assertEqual(answer_set_importer.next(), 'c')
+        self.assertRaises(StopIteration, answer_set_importer.next)
+        get_sanitised_lines_mock.assert_called_once_with('test_file_name')

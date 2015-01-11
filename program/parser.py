@@ -70,7 +70,4 @@ def get_sanitised_lines(file_name=''):
         raise StopIteration
 
     for line in input_file:
-        try:
-            yield line
-        except ValueError:
-            pass
+        yield line
