@@ -19,6 +19,9 @@
 import re
 
 
+NO_MODEL_FOR_EVALUATED_PROGRAM = -1
+
+
 def parse_answer_sets(raw_worldview):
     """
         parse_answer_set: takes unformatted queue of answerset values and removes formatting, making a list of lists
@@ -28,9 +31,11 @@ def parse_answer_sets(raw_worldview):
     """
     answer_set_regex = re.compile(r'{([\W\w]*)}')
     worldview = []
+    one_model = False
     for line in raw_worldview:
+        one_model = True
         regex_object = answer_set_regex.search(line)
         if regex_object:
             answer_set = {worldview_token.strip() for worldview_token in regex_object.group(1).split(',')}
             worldview.append(answer_set)
-    return worldview
+    return worldview if one_model else NO_MODEL_FOR_EVALUATED_PROGRAM

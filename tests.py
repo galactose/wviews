@@ -21,11 +21,9 @@ class EndToEndTest(TestCase):
     def test_psychopath(self):
         world_view_generator = WorldViews('examples/psychopath.elp')
         worldview_generator = world_view_generator.generate_worldview()
-        self.assertEqual(worldview_generator.next(), [])
         self.assertEqual(worldview_generator.next(), [{'-dangerous(sam)', '-psychopath(sam)', 'violent(sam)'}])
         self.assertEqual(worldview_generator.next(), [{'-dangerous(sam)', '-violent(sam)', 'psychopath(sam)'}])
         self.assertEqual(worldview_generator.next(), [{'psychopath(sam)'}, {'violent(sam)'}])
-        #self.assertSetEqual(test_worldview[0], {'a', 'b', 'c'})
 
     # def test_epistemic(self):
     #     world_view_generator = WorldViews('examples/epistemic.elp')

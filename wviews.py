@@ -21,7 +21,7 @@ import sys
 
 from subprocess import Popen, PIPE, STDOUT
 from itertools import product
-from answer_set import parse_answer_sets
+from answer_set import parse_answer_sets, NO_MODEL_FOR_EVALUATED_PROGRAM
 from program.program import LogicProgram
 from program import parser
 from program.atom import EpistemicModality
@@ -117,6 +117,37 @@ class WorldViews(object):
         return True
 
     @staticmethod
+    def get_valuation_string(epistemic_atom_count):
+        for valuation in product((True, False), repeat=epistemic_atom_count):
+            yield valuation
+
+    def generate_worldview(self):
+        # posOpt = self.optimisation_feasibilty(stat_struct)
+        for valuation in self.get_valuation_string(len(self.program_info.epistemic_atom_cache)):
+            # if self.evaluation_skip(posOpt, stat_struct, binModEval)
+            #     continue
+            evaluated_program = self.program_info.get_evaluated_program_and_apply_valuation(valuation)
+            raw_worldview = self.get_possible_worldview(evaluated_program)
+            world_view = parse_answer_sets(raw_worldview)
+            # checks returned set against original set.
+            if world_view != NO_MODEL_FOR_EVALUATED_PROGRAM and self.check_valuation_validity(world_view):
+                yield world_view
+            # else:
+                # contraCount += 1
+
+    @staticmethod
+    def get_possible_worldview(evaluated_program):
+        p = Popen(['dlv', '-silent','--'], stdout=PIPE, stdin=PIPE, stderr=STDOUT)
+        for line in p.communicate(input='\n'.join(evaluated_program))[0].split('\n'):
+            if line:
+                yield line
+
+    @staticmethod
+    def print_opt(opt_type, mod_a, mod_b, debug=False):
+        sys.stdout.write('%s mod: %s, atom: %s, modCompare: %s, atom: %s' %
+                         (opt_type, mod_a[1], mod_a[2], mod_b[1], mod_b[2]))
+
+    @staticmethod
     def translate_modality(atom_details):
         """
             transModality:
@@ -136,40 +167,11 @@ class WorldViews(object):
             mod = '-' + mod
         return mod
 
-    @staticmethod
-    def get_valuation_string(epistemic_atom_count):
-        for valuation in product((True, False), repeat=epistemic_atom_count):
-            yield valuation
-
-    def generate_worldview(self):
-        # posOpt = self.optimisation_feasibilty(stat_struct)
-        for valuation in self.get_valuation_string(len(self.program_info.epistemic_atom_cache)):
-            # if self.evaluation_skip(posOpt, stat_struct, binModEval)
-            #     continue
-            evaluated_program = self.program_info.get_evaluated_program_and_apply_valuation(valuation)
-            raw_worldview = self.get_possible_worldview(evaluated_program)
-            world_view = parse_answer_sets(raw_worldview)
-            # checks returned set against original set.
-            if self.check_valuation_validity(world_view):
-                yield world_view
-            # else:
-                # contraCount += 1
-
-    @staticmethod
-    def get_possible_worldview(evaluated_program):
-        p = Popen(['dlv', '-silent','--'], stdout=PIPE, stdin=PIPE, stderr=STDOUT)
-        return p.communicate(input='\n'.join(evaluated_program))[0].split('\n')
-
-    @staticmethod
-    def print_opt(opt_type, mod_a, mod_b, debug=False):
-        sys.stdout.write('%s mod: %s, atom: %s, modCompare: %s, atom: %s' %
-                         (opt_type, mod_a[1], mod_a[2], mod_b[1], mod_b[2]))
-
 
 if __name__ == '__main__':
-    world_view = WorldViews('examples/interview_grounded.elp')
+    world_view_session = WorldViews('examples/interview_grounded.elp')
     bla = []
-    for worldview in world_view.generate_worldview():
+    for worldview in world_view_session.generate_worldview():
         bla.append(worldview)
 
 #     files = os.listdir('worldviews')
