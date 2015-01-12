@@ -4,7 +4,7 @@ python:
     - 2.7
 
 before_script:
-  - curl http://www.dlvsystem.com/files/dlv.i386-linux-elf-static.bin
+  - wget http://www.dlvsystem.com/files/dlv.i386-linux-elf-static.bin
   - mv dlv.i386-linux-elf-static.bin /usr/local/bin/dlv
 
 # command to install dependencies
