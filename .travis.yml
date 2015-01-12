@@ -4,6 +4,8 @@ python:
     - 2.7
 
 # command to install dependencies
+install: "wget http://www.dlvsystem.com/files/dlv.i386-linux-elf-static.bin"
+install: "mv dlv.i386-linux-elf-static.bin /usr/local/bin/dlv"
 install: "pip install -r requirements.txt"
 # command to run tests
 script: nosetests
