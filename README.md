@@ -1,4 +1,4 @@
-Wviews [![Build Status](https://travis-ci.org/galactose/wviews.svg?branch=master)](https://travis-ci.org/galactose/wviews)
+Wviews
 =======
 Wviews is an artificial intelligence system extension for generating world view answer sets for epistemic logic programs.
 
