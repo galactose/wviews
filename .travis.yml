@@ -5,7 +5,7 @@ python:
 
 before_script:
   - wget http://www.dlvsystem.com/files/dlv.i386-linux-elf-static.bin
-  - mv dlv.i386-linux-elf-static.bin /usr/local/bin/dlv
+  - sudo mv dlv.i386-linux-elf-static.bin /usr/local/bin/dlv
 
 # command to install dependencies
 install: "pip install -r requirements.txt"
