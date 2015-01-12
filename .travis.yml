@@ -1,0 +1,13 @@
+script:
+    - sbt script
+
+python:
+    - 2.7.1
+
+branches:
+    only:
+        - master
+
+notifications:
+    email:
+        - mkelly.deft@gmail.com
