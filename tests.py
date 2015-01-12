@@ -40,6 +40,11 @@ class EndToEndTest(TestCase):
         self.assertEqual(world_view_generator.next(), [{'d', 'c'}])
         self.assertRaises(StopIteration, world_view_generator.next)
 
+    def test_trouble(self):
+        world_view_generator = WorldViews('examples/trouble.elp').generate_worldview()
+        self.assertEqual(world_view_generator.next(), [{'-b'}])
+        self.assertRaises(StopIteration, world_view_generator.next)
+
 
 class OptimiseTest(TestCase):
     def setUp(self):
