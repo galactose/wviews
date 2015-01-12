@@ -1,5 +1,3 @@
-script:
-    - sbt script
 
 python:
     - 2.7.1
