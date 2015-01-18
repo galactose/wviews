@@ -19,6 +19,29 @@
 import os
 import math
 import wviews
+import re
+from itertools import product
+
+
+class Predicate(object):
+    def __init__(self, label, arguments=None):
+        self.label = label
+        self.arguments = arguments
+
+    def ground_predicate(self):
+        pass
+
+    def variables(self):
+        pass
+
+    def values(self):
+        pass
+
+    def __str__(self):
+        pass
+
+    def __hash__(self):
+        pass
 
 
 class Grounder(object):
@@ -35,10 +58,40 @@ class Grounder(object):
         Queue<string>& copyPredicateRules(Queue<string>& queue, Queue<string>& predicates, bool ruleSwitch);
     """
 
-    def __init__(self, file_name):
-        pass
+    def __init__(self, tokenised_rules):
+        self.tokenised_rules = tokenised_rules
+        self.variables = None
+        self.values = None
 
-    def ground_predicates(self, program):
+    @staticmethod
+    def get_variable_instantiation(variable_pool, ground_value_pool):
+        for ground_instantiation in product(tuple(variable_pool), len(ground_value_pool)):
+            yield ground_instantiation
+
+    def get_variables_and_values(self):
+        predicate_regex = re.compile(r'\(([\W\w]*)\)')
+        for tokenised_rule in self.tokenised_rules:
+            if tokenised_rule.head:
+                for unground_predicate in tokenised_rule.head:
+                    predicate_arguments_token = predicate_regex.search(unground_predicate)
+                    if predicate_arguments_token:
+                        self.process_arguments(predicate_arguments_token.group(1).split('v'))
+
+            if tokenised_rule.tail:
+                for unground_predicate in tokenised_rule.tail:
+                    predicate_arguments_token = predicate_regex.search(unground_predicate)
+                    if predicate_arguments_token:
+                        self.process_arguments(predicate_arguments_token.group(1).split(','))
+
+    def process_arguments(self, raw_arguments):
+        for raw_argument in raw_arguments:
+            argument = raw_argument.strip()
+            if argument.isupper():
+                self.variables.append(argument)
+            else:
+                self.values.append(argument)
+
+    def ground_predicates(self, tokenised_rules):
         """
             groundPredicates :- This function takes the program input as argument and reduces all
             variables present in predicated rules and facts. This process is required as facts containing
@@ -64,10 +117,11 @@ class Grounder(object):
 
         # -- create list of variables in each predicated rule -- #
         
-        # create a grounding string where:
-            # length is the count of variables
-            # instances are the base of the string
-             
+
+
+        for rule in tokenised_rules:
+            pass
+
         for index in range(0, len(predicatedRules)):
             #push 0's on grounding string
             for count in range(0, varCount):
@@ -135,7 +189,7 @@ class Grounder(object):
         return queue;
     """
 
-    def sepPredRules(self, program):
+    def separate_predicate_rules(self, program):
         pass
         #tempProgram = []
         #for line in program:
@@ -143,49 +197,6 @@ class Grounder(object):
     
     def build_variable_grounding_list(self, program):
         pass
-
-    @staticmethod
-    def increment_string(base_n_string, string_base, string_length):
-        """
-            incrementString :- 
-            increments the base n string up one value, if it has reached the highest value it
-            will go back down to 0 and raise the next value up by one.
-            stack: the number string, values are always accessed from the top of the stack
-
-            Arguments:
-             * string_base (int) - the count of ground instances, e.g. ground instance of p(bob) would be bob
-             * string_length (int): the count of variables, identified by being all upper case
-        """
-        not_max_value_flag = False
-        if not base_n_string and string_base > 0 and string_length > 0:
-            base_n_string = [0] * string_length
-
-        for val in base_n_string:
-            if val != string_base - 1:
-                not_max_value_flag = True
-                break
-
-        if not not_max_value_flag or not string_base or not string_length:
-            # return the string value if we've reached the largest value for the incrementer
-            # possibly raise stop iteration here instead
-            raise StopIteration
-
-        iteration_count = string_length
-
-        carry = True
-        while iteration_count or carry:
-            carry = True
-            iteration_count = string_length
-            while iteration_count and carry:
-                # going from the bottom, if a value is less than it's max, increment it and indicate that carry isn't
-                # necessary, otherwise set to zero and move to next value up in string
-                if base_n_string[string_length - iteration_count] < string_base - 1:
-                    base_n_string[string_length - iteration_count] += 1
-                    carry = False
-                else:
-                    base_n_string[string_length - iteration_count] = 0
-                iteration_count -= 1
-            yield base_n_string
 
     def replace_variable(self, rule, variable, ground, base_n_string):
         pass

@@ -1,5 +1,5 @@
 """
-    optimisation.py: Optimisations for worldview solving
+    program.py: Program structures for worldview solving
 
     Copyright (C) 2014  Michael Kelly
 
@@ -17,7 +17,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from atom import EpistemicModality, Atom
+from atom import EpistemicModality, Atom, EpistemicAtom, NegationAsFailureAtom
 from rule import IndexedRule
 
 
@@ -92,7 +92,7 @@ class LogicProgram(object):
         self._atom_cache[atom.atom_id] = atom
         self._atom_id += 1
 
-        if atom.modality:
+        if isinstance(atom, EpistemicAtom):
             self.epistemic_atom_cache[atom.atom_id] = atom
         return True
 
@@ -108,7 +108,6 @@ class LogicProgram(object):
         """
 
         atom_negation = False
-        modality = None
         epistemic_negation = False
         negation_as_failure = False
 
@@ -125,6 +124,7 @@ class LogicProgram(object):
             if atom_token[epistemic_modality_index + 1] in ('-', '~'):
                 atom_negation = True
                 label = atom_token[epistemic_modality_index + 2:]
+            atom = EpistemicAtom(label, modality, atom_negation=atom_negation, epistemic_negation=epistemic_negation)
         else:
             label = atom_token
             if atom_token[0] in ('-', '~'):
@@ -135,10 +135,10 @@ class LogicProgram(object):
                     raise ValueError
                 negation_as_failure = True
                 label = atom_token[4:]
-
-        atom = Atom(atom_id=None, label_id=None, label=label, modality=modality, epistemic_negation=epistemic_negation,
-                    atom_negation=atom_negation, negation_as_failure=negation_as_failure)
-
+            if negation_as_failure:
+                atom = NegationAsFailureAtom(label, atom_negation)
+            else:
+                atom = Atom(label, atom_negation)
         created = self.get_or_create_atom(atom)
         if not created:
             atom.atom_id = self._atom_id_lookup[str(atom)]
@@ -158,7 +158,7 @@ class LogicProgram(object):
         for atom_id in rule.tail:
             atom = self._atom_cache[atom_id]
             #apply the valuation
-            if atom.modality:
+            if isinstance(atom, EpistemicAtom):
                 modal_atom_in_rule = True
                 atom.valuation = valuation_tuple[self.epistemic_atom_id_to_valuation_index_map[atom_id]]
                 if not atom.valuation:
