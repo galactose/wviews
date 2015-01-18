@@ -27,11 +27,12 @@ class Atom(object):
     def valuation_string(self, apply_valuation=False):
         if apply_valuation and self.modality and self.valuation:
             return ''
-        return '%s%s' % ('-' if self.atom_negation else '', self.label)
+        return '%s%s%s' % ('not ' if self.negation_as_failure else '', '-' if self.atom_negation else '', self.label)
 
     def __str__(self):
-        return '%s%s%s%s' % ('-' if self.epistemic_negation else '', self.modality_string,
-                             '-' if self.atom_negation else '', self.label)
+        return '%s%s%s%s%s' % ('-' if self.epistemic_negation else '', self.modality_string,
+                               'not ' if self.negation_as_failure else '',
+                               '-' if self.atom_negation else '', self.label)
 
     def __eq__(self, other):
         return self.__dict__ == other.__dict__

@@ -132,8 +132,7 @@ class WorldViews(object):
             # checks returned set against original set.
             if world_view != NO_MODEL_FOR_EVALUATED_PROGRAM and self.check_valuation_validity(world_view):
                 yield world_view
-            # else:
-                # contraCount += 1
+
 
     @staticmethod
     def get_possible_worldview(evaluated_program):

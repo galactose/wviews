@@ -45,6 +45,11 @@ class EndToEndTest(TestCase):
         self.assertEqual(world_view_generator.next(), [{'-b'}])
         self.assertRaises(StopIteration, world_view_generator.next)
 
+    def test_negation_as_failure(self):
+        world_view_generator = WorldViews('examples/naf.elp').generate_worldview()
+        self.assertEqual(world_view_generator.next(), [{'-a(s)', '-g(s)', 'u(x)'}])
+        self.assertRaises(StopIteration, world_view_generator.next)
+
 
 class OptimiseTest(TestCase):
     def setUp(self):
