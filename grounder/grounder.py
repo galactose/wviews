@@ -38,10 +38,10 @@ class Predicate(object):
         pass
 
     def __str__(self):
-        pass
+        return '%s(%s)' % (self.label, ','.join(self.arguments))
 
     def __hash__(self):
-        pass
+        return hash(self.__str__())
 
 
 class Grounder(object):
@@ -60,8 +60,14 @@ class Grounder(object):
 
     def __init__(self, tokenised_rules):
         self.tokenised_rules = tokenised_rules
-        self.variables = None
-        self.values = None
+        self.variables = set()
+        self.values = set()
+        self.label_id = 1
+        self.predicate_id = 1
+        self.value_id = 1
+        self.variable_id = 1
+        self.variable_id_lookup = {}
+        self.value_id_lookup = {}
 
     @staticmethod
     def get_variable_instantiation(variable_pool, ground_value_pool):
@@ -69,27 +75,36 @@ class Grounder(object):
             yield ground_instantiation
 
     def get_variables_and_values(self):
-        predicate_regex = re.compile(r'\(([\W\w]*)\)')
         for tokenised_rule in self.tokenised_rules:
             if tokenised_rule.head:
-                for unground_predicate in tokenised_rule.head:
-                    predicate_arguments_token = predicate_regex.search(unground_predicate)
-                    if predicate_arguments_token:
-                        self.process_arguments(predicate_arguments_token.group(1).split('v'))
-
+                self.process_rule_section(tokenised_rule.head)
             if tokenised_rule.tail:
-                for unground_predicate in tokenised_rule.tail:
-                    predicate_arguments_token = predicate_regex.search(unground_predicate)
-                    if predicate_arguments_token:
-                        self.process_arguments(predicate_arguments_token.group(1).split(','))
+                self.process_rule_section(tokenised_rule.tail, head=False)
 
-    def process_arguments(self, raw_arguments):
+    def process_rule_section(self, section, head=True):
+        predicate_regex = re.compile(r'\(([\W\w]*)\)')
+        section_separator = 'v' if head else ','
+        for unground_predicate in section:
+            predicate_arguments_token = predicate_regex.search(unground_predicate)
+            if predicate_arguments_token:
+
+                self.process_arguments(unground_predicate[:unground_predicate.find('(')],
+                                       predicate_arguments_token.group(1).split(section_separator))
+
+    def process_arguments(self, label, raw_arguments):
+
         for raw_argument in raw_arguments:
             argument = raw_argument.strip()
             if argument.isupper():
-                self.variables.append(argument)
+                if argument not in self.variables:
+                    self.variables.add(argument)
+                    self.variable_id += 1
             else:
-                self.values.append(argument)
+                if argument not in self.values:
+                    self.values.add(argument)
+                    self.value_id += 1
+
+            Predicate(label)
 
     def ground_predicates(self, tokenised_rules):
         """
