@@ -8,7 +8,7 @@ Epistemic logic programs extend disjunctive logic programs by allowing new modal
 
 Wviews accepts rules of the form
 
-A1 v ... v An :- K/MB1, ... K/MBn, ..., C1, ... Cn, not D1, ..., not Dn.
+    A1 v ... v An :- K/MB1, ... K/MBn, ..., C1, ... Cn, not D1, ..., not Dn.
 
 where A, B, C and D are logically atomic.
 
@@ -27,7 +27,7 @@ If student Alice has a high GPA, they are eligible. If Alice is a minority and h
 
 This program yields the world view
 
-WV = {{highGPA(alice), eligible(alice), interview(alice)}, {fairGPA(alice), interview(alice)}}
+    WV = {{highGPA(alice), eligible(alice), interview(alice)}, {fairGPA(alice), interview(alice)}}
 
 This indicates that given the unknown status of alices eligibility, interview her in either case, but in the case that she has a high GPA she is eligible.
 
