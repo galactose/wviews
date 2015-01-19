@@ -17,11 +17,11 @@ Example
 
 The following epistemic logic program represents the procedure for deciding if a student is eligible of a scholarship.
 
-eligible(alice) :- highGPA(alice).
-eligible(alice) :- minority(alice), fairGPA(alice).
-~eligible(alice) :- ~fairGPA(alice), ~highGPA(alice).
-interview(alice) :- ~Keligible(alice), ~K~eligible(alice).
-fairGPA(alice) v highGPA(alice).
+    eligible(alice) :- highGPA(alice).
+    eligible(alice) :- minority(alice), fairGPA(alice).
+    ~eligible(alice) :- ~fairGPA(alice), ~highGPA(alice).
+    interview(alice) :- ~Keligible(alice), ~K~eligible(alice).
+    fairGPA(alice) v highGPA(alice).
 
 If student Alice has a high GPA, they are eligible. If Alice is a minority and has a fair GPA, Alice is also eligible. If Alice has neither a fair or high GPA, she is ineligible for consideration. Finally if we do not know whether Alice is eligible or ineligible, interview Alice to determine. We also add that it is the case that Alice has a fair GPA or a high GPA.
 
