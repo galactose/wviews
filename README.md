@@ -2,12 +2,14 @@ Wviews [![Build Status](https://travis-ci.org/galactose/wviews.svg?branch=master
 =======
 Wviews is an artificial intelligence system extension for generating world view answer sets for epistemic logic programs.
 
-This software implements the theory in the 1994 paper "Logic programming and reasoning with incomplete information" by Michael Gelfond in the Journal the Annals of Mathematics and Artificial Intelligence and the 2007 paper "Epistemic Reasoning in Logic Programs" by Yan Zhang in the International Joint Conferences on Artificial Intelligence. 
+This software implements the theory in the 1994 paper "*Logic programming and reasoning with incomplete information*" by Michael Gelfond in the Journal the Annals of Mathematics and Artificial Intelligence and the 2007 paper "*Epistemic Reasoning in Logic Programs*" by Yan Zhang in the International Joint Conferences on Artificial Intelligence. 
 
-Epistemic logic programs extend disjunctive logic programs by allowing new modal operators K and M, where set of rules T and for formula F, KF represents "F is known by a reasoner to be true given rules T" and MF represents "F is believed true given rules T". This extension provides a richer semantics that allows representation of knowledge in the light of unknown information or inconsistent knowledge.
+Epistemic logic programs extend disjunctive logic programs by allowing new modal operators K and M, where set of rules T and for formula F, KF represents "*F is known by a reasoner to be true given rules T*" and MF represents "*F is believed true given rules T*". This extension provides a richer semantics that allows representation of knowledge in the light of unknown information or inconsistent knowledge.
 
 Wviews accepts rules of the form
+
 A1 v ... v An :- K/MB1, ... K/MBn, ..., C1, ... Cn, not D1, ..., not Dn.
+
 where A, B, C and D are logically atomic.
 
 Example
