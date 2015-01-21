@@ -29,23 +29,15 @@ from program.atom import EpistemicModality
 
 class WorldViews(object):
     """
-    **************************************************************************
-        Author - Michael Kelly BSc CompSci (Hons.), PhD Candidate.
-
-        Summary: This program reads in programs containing lists of
-            rules of the form:
+        This program reads in programs containing lists of rules of the form:
                 [a-z+[a-z]*[(A-Z+[A-Z]*)] [v a-z*]] :- [[~|-]K|M[a-z]*,]*[[not]a-z*]
-            where a-zA-Z represents atoms,
-                  v represents disjunction,
-                  ',' represents conjunction,
-                  K|M represents the modal operators,
-                    K: 'Knows' and
-                    M: 'Believes'
-                  and ':-' representing implication
-                    'is true if the following is also true'
+            where a-zA-Z represents atoms, v represents disjunction,
+            ',' represents conjunction, K and M are modal operators,
+            K 'Knows' and M 'Believes'
+            and ':-' representing implication (is true if the following is also true)
 
-            and returns the applicable worldviews derived from the rules.
-    **************************************************************************
+            Returns:
+                - worldviews - the applicable worldviews derived from the rules.
     """
 
     def __init__(self, file_name):
@@ -53,16 +45,15 @@ class WorldViews(object):
         self.program_info.index_atoms(parser.parse_program(file_name))
 
     @staticmethod
-    def check_atom_valuation(possible_world_view, atom, debug=False):
+    def check_atom_valuation(possible_world_view, atom):
         """
             Given a possible world view and an epistemic atom which has an applied valuation, return True if the
             valuation against the atom was correct given the occurrences of the atom in the possible world view and
             the modal operator associated with the atom.
 
-            - world_view: a returned answer set
-            - data, epAtom Position
-            - modalOpType - represents modality and negation
-
+            Arguments:
+             * possible_world_view (set(str)) - a returned answer set, {a_1, ..., a_n }
+             * atom (Atom) - an atom label, also containing its valuation
         """
         universal_count = 0
         answer_set_count = 0
@@ -75,12 +66,6 @@ class WorldViews(object):
                 if atom.modality == EpistemicModality.BELIEVE:
                     break
             answer_set_count += 1
-
-        if debug:
-            sys.stdout.write(
-                'wView: %s,\natom: %s,\nvaluation: %s,\nuniversalCount: %s,\nendsetCount: %s,\noneInstance: %s' %
-                (possible_world_view, atom, atom.valuation, universal_count, answer_set_count, one_instance)
-            )
 
         if atom.modality == EpistemicModality.KNOW:
             if atom.epistemic_negation and universal_count == answer_set_count:
@@ -118,6 +103,10 @@ class WorldViews(object):
 
     @staticmethod
     def get_valuation_string(epistemic_atom_count):
+        """
+        Arguments:
+         * epistemic_atom_count (int) - How many epistemic atoms exist in the program
+        """
         for valuation in product((True, False), repeat=epistemic_atom_count):
             yield valuation
 
@@ -140,11 +129,6 @@ class WorldViews(object):
         for line in p.communicate(input='\n'.join(evaluated_program))[0].split('\n'):
             if line:
                 yield line
-
-    @staticmethod
-    def print_opt(opt_type, mod_a, mod_b, debug=False):
-        sys.stdout.write('%s mod: %s, atom: %s, modCompare: %s, atom: %s' %
-                         (opt_type, mod_a[1], mod_a[2], mod_b[1], mod_b[2]))
 
     @staticmethod
     def translate_modality(atom_details):

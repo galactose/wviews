@@ -16,6 +16,9 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
+import itertools
+
+from collections import defaultdict
 
 from atom import EpistemicModality, Atom, EpistemicAtom, NegationAsFailureAtom
 from rule import IndexedRule
@@ -27,6 +30,7 @@ class LogicProgram(object):
         self._label_set = set()
         self._label_cache = {}
         self._label_id_lookup = {}
+        self.label_to_epistemic_atom_id = defaultdict(list)
         self._atom_id = 1
         self._atom_set = set()
         self._atom_cache = {}
@@ -94,14 +98,15 @@ class LogicProgram(object):
 
         if isinstance(atom, EpistemicAtom):
             self.epistemic_atom_cache[atom.atom_id] = atom
+            self.label_to_epistemic_atom_id[atom.label].append(atom.atom_id)
         return True
 
     def get_atom_information(self, atom_token):
         """
         Given a logical atom represented as a string of characters, determine if it is an epistemic atom, if the atom
         has strong negation, what kind of epistemic modality is used and if it is negated, and whether or not negation
-        as failure is used. Finally return an Atom instance which holds all this information and assign it an atom ID and
-        if applicable an epistemic ID.
+        as failure is used. Finally return an Atom instance which holds all this information and assign it an atom ID
+        and if applicable an epistemic ID.
 
         Arguments:
          * atom_token (str) - a logical atom represented as a string.
@@ -165,40 +170,33 @@ class LogicProgram(object):
                     false_valuation = True
         return rule.get_rule_string(apply_valuation=True) if not false_valuation or not modal_atom_in_rule else ''
 
-    # def get_interpreted_program_and_apply_valuation(self, valuator_tuple):
-    #     """
-    #         showPossibleSet: Takes in the queue of rules,
-    #                          the line locations of its modal operators,
-    #                          the character locations of modal operators,
-    #                          and the integer value which determines the truth valuation of each modal operator.
-    #     """
-    #
-    #     count = 0
-    #     flag = False
-    #     mod_temp = len(stat_struct)
-    #     if len(program) > 0 and not mod_temp:
-    #         return stat_struct
-    #     valuation = copy.deepcopy(program)
-    #
-    #     self.update_valuation(stat_struct, valuator_string)
-    #
-    #     for line in stat_struct:
-    #         flag = False
-    #         for epAtom in stat_struct[line]:
-    #             if epAtom[4] == 0:
-    #                 flag = True
-    #                 break
-    #         if flag:
-    #             valuation[line].append(1)
-    #         else:
-    #             valuation[line][1] = self.remove_all_rule_epistemic_atoms(valuation[line][1])
-    #             if not valuation[line][1]:
-    #                 valuation[line] = valuation[line][0]
-    #
-    #     total = len(valuation)
-    #     tempValuation = []
-    #     for line in valuation:
-    #         if line[-1] != 1:
-    #             tempValuation.append(line)
-    #
-    #     return tempValuation
+    def check_optimisations(self):
+        """
+        Search the label to epistemic atom dictionary and identify any labels which appear in an epistemic atom
+        more than once. If they have negations or modalities which conflict valuations can be simplified to not
+        process these cases.
+
+        """
+        optimisation_atom_pairs = []
+        for label, epistemic_atom_id_list in self.label_to_epistemic_atom_id:
+            if len(epistemic_atom_id_list) > 1:
+                for epistemic_atom_id_a, epistemic_atom_id_b in itertools.combinations(epistemic_atom_id_list, 2):
+                    epistemic_atom_a = self._atom_cache[epistemic_atom_id_a]
+                    epistemic_atom_b = self._atom_cache[epistemic_atom_id_b]
+                    if (epistemic_atom_a.modality == epistemic_atom_b.modality and
+                       (epistemic_atom_a.atom_negation != epistemic_atom_b.atom_negation or
+                       epistemic_atom_a.epistemic_negation != epistemic_atom_b.epistemic_negation)):
+                        optimisation_atom_pairs.append((epistemic_atom_id_a, epistemic_atom_id_b))
+                    if (epistemic_atom_a.modality == EpistemicModality.KNOW and
+                       not epistemic_atom_a.epistemic_negation and
+                       epistemic_atom_b.modality == EpistemicModality.BELIEVE and
+                       epistemic_atom_b.epistemic_negation and
+                       epistemic_atom_a.atom_negation == epistemic_atom_b.atom_negation):
+                        optimisation_atom_pairs.append((epistemic_atom_id_a, epistemic_atom_id_b))
+                    if (epistemic_atom_a.modality == EpistemicModality.KNOW and
+                       epistemic_atom_b.modality == EpistemicModality.BELIEVE and
+                       not epistemic_atom_a.epistemic_negation and
+                       not epistemic_atom_b.epistemic_negation and
+                       epistemic_atom_a.atom_negation != epistemic_atom_b.atom_negation):
+                        optimisation_atom_pairs.append((epistemic_atom_id_a, epistemic_atom_id_b))
+        return optimisation_atom_pairs
