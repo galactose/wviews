@@ -68,6 +68,8 @@ class LogicProgram(object):
                     new_rule.tail.add(atom.atom_id)
             self.program.append(new_rule)
 
+        # here we map each epistemic id to a number in an order so that when we apply a valuation it's consistent
+        # and unique so we're not testing the same set of valuations twice
         self.epistemic_atom_id_to_valuation_index_map = {
             epistemic_id: valuation_index
             for valuation_index, epistemic_id in enumerate(self.epistemic_atom_cache.keys())
@@ -77,7 +79,12 @@ class LogicProgram(object):
         """
             Given a newly created logical atom, check to see if one exists of the given type. If it doesn't assign it a
             unique ID and add it to the atoms that exist for the program. If it is an epistemic atom add it to the
-            epistemic atom cache. This allows fast access to atom information.
+            epistemic atom cache. This allows fast access to atom information. Also identify unique labels and
+            index them here.
+
+            Arguments:
+             * atom (Atom/EpistemicAtom/NegationAsFailureAtom) - an object representing an atom in an epistemic logic
+                                                                 program
         """
 
         if str(atom) in self._atom_set:
@@ -150,6 +157,20 @@ class LogicProgram(object):
         return atom
 
     def get_evaluated_program_and_apply_valuation(self, valuation_tuple):
+        """
+        Given a tuple of valuations to apply to the epistemic atoms, run through each rule, apply the valuations and
+        determine the consequences of the valuations to each rule. Here, if a valuation is true for an epistemic atom
+        it is removed from the rule meaning that we're considering true for the purposes of determining if it leads to
+        a valid worldview. If a valuation is false for an epistemic atom the entire rule is removed, indicating that
+        since one atom is false in the body of a rule its whole rule is unsatisfiable.
+
+        If a rules entire body is true we take the head and say that the head is therefore true for the evaluated
+        program.
+
+        Arguments:
+         * valuation_tuple (tuple(bool)) - a tuple of boolean values representing valuations to apply to the epistemic
+                                           atoms in the program.
+        """
         evaluated_program = []
         for rule in self.program:
             evaluated_rule = self.get_evaluated_rule_and_apply_valuation(rule, valuation_tuple)
@@ -158,6 +179,16 @@ class LogicProgram(object):
         return evaluated_program
 
     def get_evaluated_rule_and_apply_valuation(self, rule, valuation_tuple):
+        """
+        At a rule level go through the rule and check for epistemic atoms, if you find one find its index number in
+        the valuation string. Apply it's valuation in the atom and work out what that means to the rule in the
+        evaluated program. If True remove the atom from the rule body, otherwise remove the rule from the program.
+        Return the rule string if all True valuations for the epistemic atoms.
+
+        Arguments:
+         * valuation_tuple (tuple(bool)) - a tuple of boolean values representing valuations to apply to the epistemic
+                                           atoms in the program.
+        """
         false_valuation = False
         modal_atom_in_rule = False
         for atom_id in rule.tail:
