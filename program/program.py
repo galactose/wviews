@@ -183,20 +183,59 @@ class LogicProgram(object):
                 for epistemic_atom_id_a, epistemic_atom_id_b in itertools.combinations(epistemic_atom_id_list, 2):
                     epistemic_atom_a = self._atom_cache[epistemic_atom_id_a]
                     epistemic_atom_b = self._atom_cache[epistemic_atom_id_b]
-                    if (epistemic_atom_a.modality == epistemic_atom_b.modality and
-                       (epistemic_atom_a.atom_negation != epistemic_atom_b.atom_negation or
-                       epistemic_atom_a.epistemic_negation != epistemic_atom_b.epistemic_negation)):
+                    if self.check_same_modality_different_negation(epistemic_atom_a, epistemic_atom_b):
                         optimisation_atom_pairs.append((epistemic_atom_id_a, epistemic_atom_id_b))
-                    if (epistemic_atom_a.modality == EpistemicModality.KNOW and
-                       not epistemic_atom_a.epistemic_negation and
-                       epistemic_atom_b.modality == EpistemicModality.BELIEVE and
-                       epistemic_atom_b.epistemic_negation and
-                       epistemic_atom_a.atom_negation == epistemic_atom_b.atom_negation):
+                    if self.check_different_modality(epistemic_atom_id_a, epistemic_atom_id_b) or \
+                       self.check_different_modality(epistemic_atom_id_b, epistemic_atom_id_a):
                         optimisation_atom_pairs.append((epistemic_atom_id_a, epistemic_atom_id_b))
-                    if (epistemic_atom_a.modality == EpistemicModality.KNOW and
-                       epistemic_atom_b.modality == EpistemicModality.BELIEVE and
-                       not epistemic_atom_a.epistemic_negation and
-                       not epistemic_atom_b.epistemic_negation and
-                       epistemic_atom_a.atom_negation != epistemic_atom_b.atom_negation):
+                    if self.check_conflicting_modalities_and_atom_negation(epistemic_atom_id_a, epistemic_atom_id_b) \
+                       and self.check_conflicting_modalities_and_atom_negation(epistemic_atom_id_b,
+                                                                               epistemic_atom_id_a):
                         optimisation_atom_pairs.append((epistemic_atom_id_a, epistemic_atom_id_b))
         return optimisation_atom_pairs
+
+    @staticmethod
+    def check_conflicting_modalities_and_atom_negation(atom_a, atom_b):
+        """
+        Given two epistemic atoms, if one is K and doesnt have epistemic negation and the other is M and doesnt have
+        epistemic negation and their atom negations do not agree we can safely say that any valuation where they
+        are both true or both false can't be satisfied.
+
+        Argument:
+         * atom_a (EpistemicAtom) - an epistemic atom
+         * atom_b (EpistemicAtom) - another epistemic atom
+        """
+        return (atom_a.modality == EpistemicModality.KNOW and atom_b.modality == EpistemicModality.BELIEVE and
+                not atom_a.epistemic_negation and not atom_b.epistemic_negation and
+                atom_a.atom_negation != atom_b.atom_negation)
+
+    @staticmethod
+    def check_different_modality(atom_a, atom_b):
+        """
+        Given two epistemic atoms, if one is K and has epistemic negation and the other is M and hasn't and their
+        atom negation is equal we can say that any valuation that agrees for both of them cannot be true.
+
+        Argument:
+         * atom_a (EpistemicAtom) - an epistemic atom
+         * atom_b (EpistemicAtom) - another epistemic atom
+        """
+        return (atom_a.modality == EpistemicModality.KNOW and not atom_a.epistemic_negation and
+                atom_b.modality == EpistemicModality.BELIEVE and atom_b.epistemic_negation and
+                atom_a.atom_negation == atom_b.atom_negation)
+
+    @staticmethod
+    def check_same_modality_different_negation(atom_a, atom_b):
+        """
+        Given two epistemic atoms, if they have the same modality (rather K or M) but they have a conflicting
+        negation status for their modality or for their atom (but not both) then we can safely say that any valuation
+        which say both of these things are true will be false valuations.
+
+        Argument:
+         * atom_a (EpistemicAtom) - an epistemic atom
+         * atom_b (EpistemicAtom) - another epistemic atom
+        """
+        return (atom_a.modality == atom_b.modality and
+                ((atom_a.atom_negation != atom_b.atom_negation and
+                  atom_a.epistemic_negation == atom_b.epistemic_negation) or
+                 (atom_a.atom_negation == atom_b.atom_negation and
+                  atom_a.epistemic_negation != atom_b.epistemic_negation)))
