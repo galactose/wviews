@@ -25,15 +25,16 @@ class Rule(object):
         """
         body = rule_string.split(':-')
         if len(body) == 1:  # atom or disjunctive atom
-            self.head = {token.strip() for token in body[0].strip().split(' v ')}
+            self.head = {token.strip() for token in body[0].split(' v ')}
         elif len(body) == 2:  # rule or constraint
-            self.head = {token.strip().replace(' ', '') for token in body[0].split(' v ')}
+            self.head = {token.replace(' ', '') for token in body[0].split(' v ')}
             if len(self.head) == 1 and '' in self.head:
                 self.head = set()
             for token in body[1].split(','):
-                if not token.strip().startswith('not '):
+                token = token.strip()
+                if not token.startswith('not '):
                     token = token.replace(' ', '')
-                self.tail.add(token.strip())
+                self.tail.add(token)
         return [self.head, self.tail]
 
     def __str__(self):

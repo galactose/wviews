@@ -27,6 +27,7 @@ class Predicate(object):
     def __init__(self, label, arguments=None):
         self.label = label
         self.arguments = arguments
+        self.indexed_arguments = []
 
     def ground_predicate(self):
         pass
@@ -34,7 +35,7 @@ class Predicate(object):
     def variables(self):
         pass
 
-    def values(self):
+    def constants(self):
         pass
 
     def __str__(self):
@@ -61,20 +62,21 @@ class Grounder(object):
     def __init__(self, tokenised_rules):
         self.tokenised_rules = tokenised_rules
         self.variables = set()
-        self.values = set()
+        self.constants = set()
         self.label_id = 1
         self.predicate_id = 1
-        self.value_id = 1
+        self.constant_id = 1
         self.variable_id = 1
         self.variable_id_lookup = {}
-        self.value_id_lookup = {}
+        self.constant_id_lookup = {}
+        self.predicate_arg_regex = re.compile(r'\(([\W\w]*)\)')
 
     @staticmethod
-    def get_variable_instantiation(variable_pool, ground_value_pool):
-        for ground_instantiation in product(tuple(variable_pool), len(ground_value_pool)):
+    def get_variable_instantiation(variable_pool, constant_pool):
+        for ground_instantiation in product(tuple(variable_pool), len(constant_pool)):
             yield ground_instantiation
 
-    def get_variables_and_values(self):
+    def get_variables_and_constants(self):
         for tokenised_rule in self.tokenised_rules:
             if tokenised_rule.head:
                 self.process_rule_section(tokenised_rule.head)
@@ -82,27 +84,34 @@ class Grounder(object):
                 self.process_rule_section(tokenised_rule.tail, head=False)
 
     def process_rule_section(self, section, head=True):
-        predicate_regex = re.compile(r'\(([\W\w]*)\)')
         section_separator = 'v' if head else ','
         for unground_predicate in section:
-            predicate_arguments_token = predicate_regex.search(unground_predicate)
+            predicate_arguments_token = self.predicate_arg_regex.search(unground_predicate)
             if predicate_arguments_token:
+                self.process_predicate_arguments(unground_predicate[:unground_predicate.find('(')],
+                                                 predicate_arguments_token.group(1).split(section_separator))
 
-                self.process_arguments(unground_predicate[:unground_predicate.find('(')],
-                                       predicate_arguments_token.group(1).split(section_separator))
+    def process_predicate_arguments(self, label, raw_argument_list):
+        """
+        Given the arguments of a predicate, divide them into variables and values to be ground later.
 
-    def process_arguments(self, label, raw_arguments):
-
-        for raw_argument in raw_arguments:
+        Arguments:
+         * label (str) - label for the predicate
+         * raw_argument_list (str) - the list containing raw argument strings that are potentially values or variables
+        """
+        for raw_argument in raw_argument_list:
             argument = raw_argument.strip()
             if argument.isupper():
                 if argument not in self.variables:
                     self.variables.add(argument)
+                    self.variable_id_lookup[self.variable_id] = argument
                     self.variable_id += 1
+
             else:
-                if argument not in self.values:
-                    self.values.add(argument)
-                    self.value_id += 1
+                if argument not in self.constants:
+                    self.constants.add(argument)
+                    self.constant_id_lookup[self.variable_id] = argument
+                    self.constant_id += 1
 
             Predicate(label)
 
