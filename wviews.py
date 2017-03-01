@@ -125,8 +125,8 @@ class WorldViews(object):
 
     @staticmethod
     def get_possible_worldview(evaluated_program):
-        p = Popen(['dlv', '-silent','--'], stdout=PIPE, stdin=PIPE, stderr=STDOUT)
-        for line in p.communicate(input='\n'.join(evaluated_program))[0].split('\n'):
+        dlv_response = Popen(['dlv', '-silent', '--'], stdout=PIPE, stdin=PIPE, stderr=STDOUT)
+        for line in dlv_response.communicate(input='\n'.join(evaluated_program))[0].split('\n'):
             if line:
                 yield line
 
@@ -152,10 +152,10 @@ class WorldViews(object):
 
 
 if __name__ == '__main__':
-    world_view_session = WorldViews('examples/interview_grounded.elp')
-    bla = []
-    for worldview in world_view_session.generate_worldview():
-        bla.append(worldview)
+    WORLD_VIEW_SESSION = WorldViews('examples/interview_grounded.elp')
+    WORLDVIEWS = []
+    for worldview in WORLD_VIEW_SESSION.generate_worldview():
+        WORLDVIEWS.append(worldview)
 
 #     files = os.listdir('worldviews')
 #     session = WorldViews('worldviews\\interview.txt')
