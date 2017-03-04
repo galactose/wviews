@@ -45,9 +45,9 @@ def get_program_lines(file_name):
     for line in get_sanitised_lines(file_name):
         if '%' in line:
             line = line[:line.index('%')]
-        # need to implement system such that rules can be staggered over various lines or
-        # a line may have multiple rules.
-        if not line.index('.') == -1:
+        # need to implement system such that rules can be staggered
+        # over various lines or a line may have multiple rules.
+        if line.index('.') != -1:
             for line_section in line.split('.'):
                 raw_token = line_section.strip()
                 if raw_token:
@@ -64,7 +64,8 @@ def get_sanitised_lines(file_name=''):
         raise StopIteration
 
     try:
-        input_file = file(file_name, 'r')  # need to implement try/except block to catch exceptions
+        # need to implement try/except block to catch exceptions
+        input_file = file(file_name, 'r')
     except IOError:
         sys.stdout.write('\n<file does not exist.>\n')
         raise StopIteration

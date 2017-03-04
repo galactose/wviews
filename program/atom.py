@@ -24,7 +24,8 @@ class EpistemicModality(object):
 
 
 class Atom(object):
-    def __init__(self, label, atom_negation=False, atom_id=None, label_id=None):
+    def __init__(self, label, atom_negation=False, atom_id=None,
+                 label_id=None):
         self.atom_id = atom_id
         self.label_id = label_id
         self.atom_negation = atom_negation
@@ -44,9 +45,12 @@ class Atom(object):
 
 
 class EpistemicAtom(Atom):
-    def __init__(self, label, modality, atom_id=None, label_id=None, atom_negation=False, epistemic_negation=False,
+    def __init__(self, label, modality, atom_id=None, label_id=None,
+                 atom_negation=False, epistemic_negation=False,
                  valuation=None):
-        super(EpistemicAtom, self).__init__(label, atom_negation, atom_id, label_id)
+        super(EpistemicAtom, self).__init__(
+            label, atom_negation, atom_id, label_id
+        )
         self.modality = modality
         self.epistemic_negation = epistemic_negation
         self.valuation = valuation
@@ -58,8 +62,10 @@ class EpistemicAtom(Atom):
         return 'K' if self.modality == EpistemicModality.KNOW else 'M'
 
     def __str__(self):
-        return '%s%s%s%s' % ('-' if self.epistemic_negation else '', self.modality_string,
-                             '-' if self.atom_negation else '', self.label)
+        return '%s%s%s%s' % (
+            '-' if self.epistemic_negation else '', self.modality_string,
+            '-' if self.atom_negation else '', self.label
+        )
 
     def valuation_string(self, apply_valuation=False):
         if apply_valuation and self.valuation:
@@ -69,7 +75,9 @@ class EpistemicAtom(Atom):
 
 class NegationAsFailureAtom(Atom):
     def __init__(self, label, atom_negation, atom_id=None, label_id=None):
-        super(NegationAsFailureAtom, self).__init__(label, atom_negation, atom_id, label_id)
+        super(NegationAsFailureAtom, self).__init__(
+            label, atom_negation, atom_id, label_id
+        )
 
     def valuation_string(self, apply_valuation=False):
         return 'not %s%s' % ('-' if self.atom_negation else '', self.label)

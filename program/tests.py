@@ -1,18 +1,20 @@
-from mock import patch, MagicMock
 from unittest import TestCase
+from mock import patch, MagicMock
 
-import parser
-from atom import Atom, EpistemicModality, NegationAsFailureAtom, EpistemicAtom
-from rule import Rule
-from program import LogicProgram
+import wviews.program.parser as parser
+from wviews.program.atom import Atom, EpistemicModality, NegationAsFailureAtom, EpistemicAtom
+from wviews.program.rule import Rule
+from wviews.program.program import LogicProgram
 
 
 class AtomTest(TestCase):
     def setUp(self):
-        self.test_atom = EpistemicAtom(label='a', atom_negation=True, modality=EpistemicModality.KNOW,
-                                       epistemic_negation=True)
+        self.test_atom = EpistemicAtom(
+            label='a', atom_negation=True,
+            modality=EpistemicModality.KNOW, epistemic_negation=True
+        )
 
-    def test_atom(self):
+    def test_base_atom(self):
         self.assertEqual(str(self.test_atom), '-K-a')
 
     def test_equal(self):
@@ -98,13 +100,23 @@ class ProgramTest(TestCase):
                          {'atom_id': 3, 'label_id': 1, 'atom_negation': True, 'epistemic_negation': False,
                           'label': 'a', 'modality': 1, 'valuation': None})
 
-        self.assertEqual(self.program.get_atom_information('Ka').__dict__,
-                         {'atom_id': 4, 'label_id': 1, 'atom_negation': False, 'epistemic_negation': False,
-                         'label': 'a', 'modality': 1, 'valuation': None})
+        self.assertEqual(
+            self.program.get_atom_information('Ka').__dict__,
+            {
+                'atom_id': 4, 'label_id': 1, 'atom_negation': False,
+                'epistemic_negation': False, 'label': 'a', 'modality': 1,
+                'valuation': None
+            }
+        )
 
-        self.assertEqual(self.program.get_atom_information('Ma').__dict__,
-                         {'atom_id': 5, 'label_id': 1, 'atom_negation': False, 'epistemic_negation': False,
-                         'label': 'a', 'modality': 2, 'valuation': None})
+        self.assertEqual(
+            self.program.get_atom_information('Ma').__dict__,
+            {
+                'atom_id': 5, 'label_id': 1, 'atom_negation': False,
+                'epistemic_negation': False, 'label': 'a', 'modality': 2,
+                'valuation': None
+            }
+        )
 
         self.assertEqual(self.program.get_atom_information('M-b').__dict__,
                          {'atom_id': 6, 'label_id': 2, 'atom_negation': True, 'epistemic_negation': False,
