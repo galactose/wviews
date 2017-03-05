@@ -76,7 +76,7 @@ class LogicProgram(object):
         # same set of valuations twice
         self.epistemic_atom_id_to_valuation_index_map = {
             epistemic_id: valuation_index
-            for valuation_index, epistemic_id in \
+            for valuation_index, epistemic_id in
             enumerate(self.epistemic_atom_cache.keys())
         }
 
@@ -138,7 +138,8 @@ class LogicProgram(object):
             if epistemic_modality_index == -1:
                 epistemic_modality_index = atom_token.find('K')
                 modality = EpistemicModality.KNOW
-            if epistemic_modality_index != 0 and atom_token[epistemic_modality_index - 1] in ('-', '~'):
+            if epistemic_modality_index != 0 and \
+               atom_token[epistemic_modality_index - 1] in ('-', '~'):
                 epistemic_negation = True
                 label = atom_token[epistemic_modality_index + 1:]
             if atom_token[epistemic_modality_index + 1] in ('-', '~'):
@@ -209,12 +210,14 @@ class LogicProgram(object):
         modal_atom_in_rule = False
         for atom_id in rule.tail:
             atom = self._atom_cache[atom_id]
-            #apply the valuation
-            if isinstance(atom, EpistemicAtom):
-                modal_atom_in_rule = True
-                atom.valuation = valuation_tuple[self.epistemic_atom_id_to_valuation_index_map[atom_id]]
-                if not atom.valuation:
-                    false_valuation = True
+            if not isinstance(atom, EpistemicAtom):
+                continue
+            # apply the valuation
+            modal_atom_in_rule = True
+            valuation_index = self.epistemic_atom_id_to_valuation_index_map[atom_id]
+            atom.valuation = valuation_tuple[valuation_index]
+            if not atom.valuation:
+                false_valuation = True
         if not false_valuation or not modal_atom_in_rule:
             return rule.get_rule_string(apply_valuation=True)
         return ''
@@ -228,24 +231,30 @@ class LogicProgram(object):
 
         """
         optimisation_atom_pairs = []
-        for label, epistemic_atom_id_list in self.label_to_epistemic_atom_id:
-            if len(epistemic_atom_id_list) > 1:
-                for epistemic_atom_id_a, epistemic_atom_id_b in itertools.combinations(epistemic_atom_id_list, 2):
-                    epistemic_atom_a = self._atom_cache[epistemic_atom_id_a]
-                    epistemic_atom_b = self._atom_cache[epistemic_atom_id_b]
-                    if self.check_same_modality_different_negation(epistemic_atom_a, epistemic_atom_b):
-                        optimisation_atom_pairs.append((epistemic_atom_id_a, epistemic_atom_id_b))
-                    if self.check_different_modality(epistemic_atom_id_a, epistemic_atom_id_b) or \
-                       self.check_different_modality(epistemic_atom_id_b, epistemic_atom_id_a):
-                        optimisation_atom_pairs.append((epistemic_atom_id_a, epistemic_atom_id_b))
-                    if self.check_conflicting_modalities_and_atom_negation(epistemic_atom_id_a, epistemic_atom_id_b) \
-                       and self.check_conflicting_modalities_and_atom_negation(epistemic_atom_id_b,
-                                                                               epistemic_atom_id_a):
-                        optimisation_atom_pairs.append((epistemic_atom_id_a, epistemic_atom_id_b))
+        for label, e_atom_id_list in self.label_to_epistemic_atom_id:
+            if not e_atom_id_list or len(e_atom_id_list) == 1:
+                continue
+            e_combinations = itertools.combinations(e_atom_id_list, 2)
+            for e_atom_id_a, e_atom_id_b in e_combinations:
+                e_atom_a = self._atom_cache[e_atom_id_a]
+                e_atom_b = self._atom_cache[e_atom_id_b]
+                if self.check_optimisation(e_atom_a, e_atom_b):
+                    optimisation_atom_pairs.append(e_atom_a, e_atom_b)
         return optimisation_atom_pairs
 
+    def check_optimisation(e_atom_a, e_atom_b):
+        """
+        """
+        return (
+            self.check_conflicts(e_atom_a, e_atom_b) and
+            self.check_conflicts(e_atom_b, e_atom_a)
+            ) or \
+            self.check_conflicting_negation(e_atom_a, e_atom_b) or \
+            self.check_different_modality(e_atom_a, e_atom_b) or \
+            self.check_different_modality(e_atom_b, e_atom_a)
+
     @staticmethod
-    def check_conflicting_modalities_and_atom_negation(atom_a, atom_b):
+    def check_conflicts(atom_a, atom_b):
         """
         Given two epistemic atoms, if one is K and doesnt have epistemic
         negation and the other is M and doesnt have epistemic negation
@@ -280,7 +289,7 @@ class LogicProgram(object):
                 atom_a.atom_negation == atom_b.atom_negation)
 
     @staticmethod
-    def check_same_modality_different_negation(atom_a, atom_b):
+    def check_conflicting_negation(atom_a, atom_b):
         """
         Given two epistemic atoms, if they have the same modality
         (rather K or M) but they have a conflicting negation status for their
