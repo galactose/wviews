@@ -16,7 +16,7 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
-import itertools
+from itertools import combinations
 
 from collections import defaultdict
 
@@ -234,7 +234,7 @@ class LogicProgram(object):
         for label, e_atom_id_list in self.label_to_epistemic_atom_id:
             if not e_atom_id_list or len(e_atom_id_list) == 1:
                 continue
-            e_combinations = itertools.combinations(e_atom_id_list, 2)
+            e_combinations = combinations(e_atom_id_list, 2)
             for e_atom_id_a, e_atom_id_b in e_combinations:
                 e_atom_a = self._atom_cache[e_atom_id_a]
                 e_atom_b = self._atom_cache[e_atom_id_b]

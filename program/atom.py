@@ -72,6 +72,32 @@ class EpistemicAtom(Atom):
             return ''
         return '%s%s' % ('-' if self.atom_negation else '', self.label)
 
+    def know():
+        return self.modality == EpistemicModality.KNOW
+
+    def believe():
+        return self.modality == EpistemicModality.BELIEVE
+
+    def knows():
+        return self.modality == EpistemicModality.KNOW and \
+           not self.epistemic_negation
+
+    def believes():
+        return self.modality == EpistemicModality.BELIEVE and \
+           not self.epistemic_negation
+
+    def same_modal(self, e_atom):
+        return self.same_modal_token(e_atom) and self.same_modal_negation(e_atom)
+
+    def same_modal_token(self, e_atom):
+        return self.modality == e_atom.modality
+
+    def same_modal_negation(self, e_atom):
+        return self.epistemic_negation == e_atom.epistemic_negation
+
+    def same_atom_negation(self, e_atom):
+        return self.atom_negation == e_atom.atom_negation
+
 
 class NegationAsFailureAtom(Atom):
     def __init__(self, label, atom_negation, atom_id=None, label_id=None):

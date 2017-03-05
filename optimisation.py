@@ -19,24 +19,27 @@
 
 # def evaluation_skip(optimisation, stat_struct, valuator_string, debug=0):
 #     """
-#         Retrofitting for statistic structure
-#         Evaluation Skip: Looks at possible optimisations from previous function and sorts through
-#         epistemic atoms and the current valuation string and determines if it is a valuation worth
-#         persuing, here valuations containing conflicting values will be considered removable
-#         Pre :-  *epistemic atoms and their negation status need to be processed.
-#                 *The valuation binary string must be calculated.
-#                 *An evaluation of optimisations to check for must also be looked for.
-#         Post :- *A binary value will be outputted deciding whether this set of atoms is worth persuing
-#                  as an interpretation of the original subjective program.
+#     Retrofitting for statistic structure
+#     Evaluation Skip: Looks at possible optimisations from previous function
+#         and sorts through epistemic atoms and the current valuation string
+#         and determines if it is a valuation worth persuing, here valuations
+#         containing conflicting values will be considered removable
+#     Pre :-  * epistemic atoms and their negation status need to be processed.
+#             * The valuation binary string must be calculated.
+#             * An evaluation of optimisations to check for must also be looked
+#               for.
+#     Post :- * A binary value will be outputted deciding whether this set of
+#               atoms is worth persuing as an interpretation of the original
+#               subjective program.
 #     """
 #     temp = 0
-#
-#     if self.modal_operator_count(stat_struct) == 1 or not self.modal_operator_count(stat_struct):
+
+#     if self.modal_operator_count(stat_struct) == 1 or \
+#        not self.modal_operator_count(stat_struct):
 #         return True
-#
+
 #     # make a copy of the original queue to not lose original value set
 #     copysStat = copy.copy(stat_struct)
-#     # print 'valuator_string:',valuator_string
 #     count = self.modOpCount(stat_struct)
 #     countb = len(stat_struct.keys())
 #     while countb:
@@ -47,65 +50,90 @@
 #             if not temp:
 #                 remove_item = stat_struct[stat_struct.keys()[countb-1]][counta-1]
 #                 stat_struct[stat_struct.keys()[countb-1]].remove(remove_item)
-#                 # print stat_struct[stat_struct.keys()[countb-1]]
 #             counta -= 1
 #         countb -= 1
-#
+
 #     count = len(stat_struct)
-#
+
 #     while count:
-#         if len(stat_struct[stat_struct.keys()[count-1]]) == 0:
+#         if not stat_struct[stat_struct.keys()[count-1]]:
 #             del stat_struct[count]
 #         count -= 1
-#
+
 #     for linea in stat_struct:
-#         for mod_a in stat_struct[linea]:
-#             for lineb in stat_struct:
-#                 for mod_b in stat_struct[lineb]:
-#                     if mod_a != mod_b:
-#                         print 'mod_a:', mod_a
-#                         print 'mod_b:', mod_b
-#                         if optimisation & 0x1 == 1:
-#                             if ((mod_a[1] & 0x2) != (mod_b[1] & 0x2)) and ((mod_a[1] & 0x1) != (mod_b[1] & 0x1)) and \
-#                                     (mod_a[2] == mod_b[2]) and ((mod_a[1] & 0x4) == (mod_b[1] & 0x4)) and \
-#                                     ((mod_a[1] & 0x4) == 0):
-#                                 # if modal operators are different
-#                                 # atom negation is different, and there is no atom negation
-#                                 self.print_opt('TT1', mod_a, mod_b, debug)
-#                                 return False
-#                         elif (optimisation & 0x2) == 2:
-#                             if ((mod_a[1] & 0x6) == (mod_b[1] & 0x6)) and ((mod_a[1] & 0x2) == 1) and \
-#                                ((mod_a[1] & 0x4) == 0) and ((mod_a[1] & 0x1) != (mod_b[1] & 0x1)) and \
-#                                (mod_a[2] == mod_b[2]):
-#                                 # if both mod negation and mod are the same (K and no negation)
-#                                 self.print_opt('TT2', mod_a, mod_b, debug)
-#                                 return False
-#                         elif (optimisation & 0x4) == 4:
-#                             if ((mod_a[1] & 0x6) != (mod_b[1] & 0x6)) and (mod_a[2] == mod_b[1]) and \
-#                                ((mod_a[1] & 0x1) == (mod_b[1] & 0x1)) and \
-#                                ((mod_a[1] & 0x4) != (mod_a[1] & 0x2)) and \
-#                                ((mod_b[1] & 0x4) != (mod_b[1] & 0x2)):
-#                                 self.print_opt('TT4', mod_a, mod_b, debug)
-#                                 return False
-#                         if (optimisation & 0x20) == 32:
-#                             if ((mod_a[1] & 0x3) == (mod_b[1] & 0x3)) and (mod_a[2] == mod_b[2]) and \
-#                                ((mod_a[1] & 0x4) != (mod_b[1] & 0x4)):
-#                                 self.print_opt('TT3', mod_a, mod_b, debug)
-#                                 return False
-#                         if (optimisation & 0x8) == 8:
-#                             if (mod_a[1] == mod_b[1]) and (mod_a[2] == mod_b[2]):
-#                                 if debug:
-#                                     print 'TF1 1 nMod = modCompare, ', mod, ' = ', modCompare, \
-#                                         '\n atom = atomCompare, ', atom, ' = ', atomCompare
-#                                 return False
-#                         if (optimisation & 0x10) == 16:
-#                             if ((mod_a[1] & 0x2) != (mod_b[1] & 0x2)) and ((mod_a[1] & 0x2) == 1) and \
-#                                (mod_a[2] == mod_b[2]) and ((mod_a[1] & 0x1) == (mod_b[1] & 0x1)) and \
-#                                ((mod_a[1] & 0x4) == (mod_b[1] & 0x4)) and ((mod_a[1] & 0x4) == 0):
-#                                 self.print_opt('TF2', mod_a, mod_b, debug)
-#                                 return False
-#                         if (optimisation & 0x20) == 32:
-#                             if ((mod_a[1] & 0x3) == (mod_b[1] & 0x3)) and (mod_b[2] == mod_a[2]) and \
-#                                     ((mod_b[1] & 0x4) != (mod_a[1] & 0x4)):
-#                                 return False
+#         for lineb in stat_struct:
+#             comparison_modals = combinations(stat_struct[lineb] + stat_struct[linea], 2)
+#             for modal_pair in comparison_modals:
+#                 mod_a, mod_b = comparison_modals
+#                 if mod_a.label != mod_b.label:
+#                     continue
+#                 if not check_optimisation(optimisation, mod_a, mod_b):
+#                     return False
 #     return True
+
+# def check_optimisation(optimisation, mod_a, mod_b):
+#     """
+#     Analysing old code
+#     0: epistemic negation
+#     1: modality K|B
+#     2: atom negation
+#     """
+
+#     if optimisation & 0x1 == 1:
+#         if ((mod_a[1] & 0x2) != (mod_b[1] & 0x2)) and \
+#            ((mod_a[1] & 0x1) != (mod_b[1] & 0x1)) and \
+#            ((mod_a[1] & 0x4) == (mod_b[1] & 0x4)) and \
+#            ((mod_a[1] & 0x4) == 0):
+#             # if modal operators are different
+#             # atom negation is different, and there is no atom negation
+#             return False
+#     elif (optimisation & 0x2) == 2:
+#         if ((mod_a[1] & 0x6) == (mod_b[1] & 0x6)) and \
+#            ((mod_a[1] & 0x2) == 1) and \
+#            ((mod_a[1] & 0x4) == 0) and \
+#            ((mod_a[1] & 0x1) != (mod_b[1] & 0x1)):
+#             # if both mod negation and mod are the same (K and no negation)
+#             return False
+#     elif (optimisation & 0x4) == 4:
+#         if ((mod_a[1] & 0x6) != (mod_b[1] & 0x6)) and \
+#            ((mod_a[1] & 0x1) == (mod_b[1] & 0x1)) and \
+#            ((mod_a[1] & 0x4) != (mod_a[1] & 0x2)) and \
+#            ((mod_b[1] & 0x4) != (mod_b[1] & 0x2)):
+#             return False
+# elif (optimisation & 0x8) == 8:
+#     # look for cases where the epistemic atoms are the same.
+#     if (mod_a[1] == mod_b[1]):
+#         return False
+# elif (optimisation & 0x10) == 16:
+#     if ((mod_a[1] & 0x2) != (mod_b[1] & 0x2)) and \
+#        ((mod_a[1] & 0x2) == 1) and \
+#        ((mod_a[1] & 0x1) == (mod_b[1] & 0x1)) and \
+#        ((mod_a[1] & 0x4) == (mod_b[1] & 0x4)) and \
+#        ((mod_a[1] & 0x4) == 0):
+#         return False
+# elif (optimisation & 0x20) == 32:
+#     if ((mod_a[1] & 0x3) == (mod_b[1] & 0x3)) and \
+#        ((mod_b[1] & 0x4) != (mod_a[1] & 0x4)):
+#         return False
+
+# def optimisation_present(e_atom_a, e_atom_b):
+#     if e_atom_a == e_atom_b:
+#         return True
+#     # if different modality but same negations on same label
+#     # optimisation exists
+#     if not e_atom_a.same_modal_token(e_atom_b) and e_atom_a.know() and \
+#        e_atom_b.same_atom_negation(e_atom_b) and \
+#        e_atom_b.same_epistemic_negation(e_atom_b)
+#        not e_atom_a.atom_negation:
+#        return True
+
+#     if e_atom_a.same_modal(e_atom_b) and \
+#        not e_atom_a.same_atom_negation(e_atom_b):
+#        return True
+
+#     if e_atom_a.same_modal(e_atom_b) and e_atom_a.know()
+#     elif (optimisation & 0x2) == 2:
+#         if ((mod_a[1] & 0x6) == (mod_b[1] & 0x6)) and \
+#            ((mod_a[1] & 0x2) == 1) and \
+#            ((mod_a[1] & 0x4) == 0) and \
+#            ((mod_a[1] & 0x1) != (mod_b[1] & 0x1)):
