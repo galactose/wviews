@@ -37,7 +37,7 @@ def parse_answer_sets(raw_worldview):
         one_model = True
         regex_object = answer_set_regex.search(line)
         if regex_object:
-            answerset = set()
+            answer_set = set()
             for worldview_token in regex_object.group(1).split(','):
                 answer_set.add(worldview_token.strip())
             worldview.append(answer_set)
