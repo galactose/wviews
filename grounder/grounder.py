@@ -16,11 +16,10 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import os
 import math
-import wviews
 import re
 from itertools import product
+import wviews
 
 
 class Predicate(object):
@@ -49,7 +48,7 @@ class Grounder(object):
     """
         grounder():
             Generic Grounder object for elp.
-            
+
         Summary
         Queue<string>& groundPredicates(Queue<string> &queue);
         Stack<int>& incrementString(Stack<int> &stack, int base, int length);
@@ -122,7 +121,7 @@ class Grounder(object):
             variable values will be considered dangerous reasoning by DLV's standards and will return without
             calculating the disjunctive answer set.
 
-            grounding example :- 
+            grounding example :-
             loves_coffee(ted). loves_tea(chip). loves_coffee(nancy).
             loves_hot_drinks(X) :- loves_coffee(X).
 
@@ -136,11 +135,10 @@ class Grounder(object):
         varLit = self.build_variable_grounding_list(program)
         varCount = len(varlit[0])
         litCount = len(varlit[1])
-        
+
         # -- separate predicated and non-predicated rules -- #
 
         # -- create list of variables in each predicated rule -- #
-        
 
 
         for rule in tokenised_rules:
@@ -167,7 +165,7 @@ class Grounder(object):
         string dataOut, variable, ground, backup, dataString;
         int data = 0, temp = 0, length = 0, base = 0, operation = 0, count = 0, ruleLength = 0;
         copy = copyQueue(queue, copy);
-        
+
         copy = varGroundQueue(copy); //make queue of variables
         while(copy.queueCount() > 0)
         {
@@ -185,7 +183,7 @@ class Grounder(object):
         length = var.queueCount();				//count of variables
         base = grnd.queueCount();				//get count of grounded atoms
         qTemp = copyQueue(queue, qTemp);	    //maintaining original queue, copying editable queue
-        addPred = copyPredicateRules(qTemp, addPred, true);  //extracting rules containing predicates 
+        addPred = copyPredicateRules(qTemp, addPred, true);  //extracting rules containing predicates
         nonPred = copyPredicateRules(qTemp, nonPred, false); //extracting non-predicated rules
 
         varCount = varPerRule(addPred, varCount); //determine how many unique variables exist in each line
@@ -199,7 +197,7 @@ class Grounder(object):
                 temp--;
             }
             addPred.dequeue(dataString);
-            backup = dataString; 
+            backup = dataString;
             operation = pow((double)grnd.queueCount(), ruleLength);
             while(operation)
             {
@@ -218,7 +216,7 @@ class Grounder(object):
         #tempProgram = []
         #for line in program:
         #    if isinstance(line, type([])): pass
-    
+
     def build_variable_grounding_list(self, program):
         pass
 
@@ -406,12 +404,9 @@ if __name__ == '__main__':
     session = wviews.elp('worldviews\\interview.txt')
     grounder = Grounder(session)
     base = []
-    
+
     try:
         while 1:
             incObj = grounder.increment_string(base, 3, 4)
     except StopIteration:
         pass
-
-    print base
-    os.system('pause')
