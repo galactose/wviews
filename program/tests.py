@@ -97,8 +97,6 @@ class ProgramTest(TestCase):
         self.assertEqual(self.program.get_or_create_atom(test_atom), False)
 
     def test_get_atom_information(self):
-        # bla = self.program.get_atom_information('-K-a')
-        # print bla.__dict__
         self.assertEqual(
             self.program.get_atom_information('-K-a').__dict__,
             {'atom_id': 1, 'label_id': 1, 'atom_negation': True,

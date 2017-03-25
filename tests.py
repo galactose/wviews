@@ -45,10 +45,12 @@ class EndToEndTest(TestCase):
         self.assertEqual(generator.next(), [{'a'}])
         self.assertRaises(StopIteration, generator.next)
 
-    # def test_epistemic(self):
-    #     generator = WorldViews('examples/epistemic.elp')
-    #     test_worldview = generator.generate_worldview().next()
-    #     self.assertSetEqual(test_worldview[0], {})
+    def test_epistemic(self):
+        generator = WorldViews('examples/epistemic.elp')
+        test_worldview = generator.generate_worldview().next()
+        # no consistent worldview, either valuation for this atom
+        # will lead to a contradiction.
+        self.assertRaises(StopIteration, generator.next)
 
     def test_same(self):
         generator = WorldViews('examples/same.elp').generate_worldview()
