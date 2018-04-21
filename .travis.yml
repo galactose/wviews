@@ -3,6 +3,8 @@ language: python
 python:
     - 2.7
 
+dist: trusty
+
 before_script:
   - wget http://www.dlvsystem.com/files/dlv.i386-linux-elf-static.bin
   - sudo mv dlv.i386-linux-elf-static.bin /usr/local/bin/dlv
