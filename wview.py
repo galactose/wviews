@@ -17,15 +17,13 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import sys
-
-
 from subprocess import Popen, PIPE, STDOUT
 from itertools import product
 from answer_set import parse_answer_sets, NO_MODEL_FOR_EVALUATED_PROGRAM
 from program.program import LogicProgram
 from program import parser
 from program.atom import EpistemicModality
+from program.parser import Grounder
 
 
 class WorldViews(object):
@@ -46,6 +44,10 @@ class WorldViews(object):
         self.dlv_path = dlv_path
         if not dlv_path:
             self.dlv_path = 'dlv'
+        #self.grounder = Grounder(parser.parse_program(file_name))
+        #grounded_program_it = self.grounder.ground_program(parser.parse_program(file_name))
+        #self.grounder.get_variables_and_domain()
+
         self.program_info = LogicProgram(None)
         self.program_info.index_atoms(parser.parse_program(file_name))
 

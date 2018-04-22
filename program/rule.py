@@ -3,6 +3,40 @@ class BrokenConstraint(Exception):
     pass
 
 
+class Token(object):
+    def __init__(self, raw_label):
+        self.raw_label = raw_label
+        self.label = None
+        self.variables = list()
+        self.ground_values = list()
+        self.args = self.parse_args(raw_label)
+
+    def parse_args(self, raw_label):
+        token = raw_label.replace(' ','')
+        if '(' not in raw_label and ')' not in raw_label:
+            self.label = raw_label
+            return []
+        elif '(' in raw_label and ')' not in raw_label or \
+          '(' not in raw_label and ')' in raw_label:
+          raise ValueError('Bad token syntax: %s' % raw_label)
+        first_paren = token.index('(')
+        self.label = token[:first_paren]
+        raw_args = token[first_paren + 1:token.index(')')]
+        args = raw_args.split(',')
+        for arg in args:
+            if arg.isupper() and arg not in self.variables:
+                self.variables.append(arg)
+            elif arg not in self.ground_values:
+                self.ground_values.append(arg)
+        self.variables.sort()
+        self.ground_values.sort()
+        return args
+
+    def __str__(self):
+        args = '(%s)' % ','.join(self.args) if self.args else ''
+        return '%s%s' % (self.label, args)
+
+
 class Rule(object):
     def __init__(self, rule_string):
         """
@@ -33,11 +67,25 @@ class Rule(object):
                 self.head.add(token.replace(' ', ''))
             if len(self.head) == 1 and '' in self.head:
                 self.head = set()
-            for token in body[1].split(','):
-                token = token.strip()
-                if not token.startswith('not '):
-                    token = token.replace(' ', '')
-                self.tail.add(token)
+
+            if '(' in body[1] and ')' in body[1]:
+                while '(' in body[1] and ')' in body[1]:
+                    first = body[1].index('(')
+                    last = body[1].index(')')
+                    token = body[1][:last + 1].strip()
+                    if not token.startswith('not '):
+                        token = token.replace(' ', '')
+                    self.tail.add(token)
+                    body[1] = body[1][last + 1:].strip()
+                    if body[1].startswith(','):
+                        body[1] = body[1][1:].strip()
+            else:
+                for token in body[1].split(','):
+                    token = token.strip()
+                    if not token.startswith('not '):
+                        token = token.replace(' ', '')
+                    self.tail.add(token)
+
         return [self.head, self.tail]
 
     def __str__(self):

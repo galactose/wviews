@@ -4,7 +4,7 @@ from mock import patch, MagicMock
 import wviews.program.parser as parser
 from wviews.program.atom import Atom, EpistemicModality, \
     NegationAsFailureAtom, EpistemicAtom
-from wviews.program.rule import Rule
+from wviews.program.rule import Rule, Token
 from wviews.program.program import LogicProgram
 
 
@@ -82,6 +82,20 @@ class ParserTest(TestCase):
         self.assertEqual(answer_set.next(), 'c')
         self.assertRaises(StopIteration, answer_set.next)
         get_sanitised_lines_mock.assert_called_once_with('test_file_name')
+
+
+class TokenTest(TestCase):
+
+    def setUp(self):
+        self.test_token = Token(raw_label='test(X, Y, a, b, c)')
+
+    def test_base_token(self):
+        self.assertEqual(str(self.test_token), 'test(X,Y,a,b,c)')
+        self.assertSetEqual(self.test_token.variables, {'X', 'Y'})
+        self.assertSetEqual(self.test_token.ground_values, {'a', 'b', 'c'})
+        self.assertEqual(str(Token(raw_label='test')), 'test')
+        self.assertRaises(ValueError, Token, 'test(X,')
+        self.assertRaises(ValueError, Token, 'testX)')
 
 
 class ProgramTest(TestCase):

@@ -17,7 +17,8 @@
 """
 
 import sys
-from rule import Rule
+from itertools import product
+from rule import Rule, Token
 
 
 def parse_program(file_name):
@@ -62,7 +63,6 @@ def import_answer_set(file_name=''):
 def get_sanitised_lines(file_name=''):
     if not file_name:
         raise StopIteration
-
     try:
         # need to implement try/except block to catch exceptions
         input_file = file(file_name, 'r')
@@ -72,3 +72,69 @@ def get_sanitised_lines(file_name=''):
 
     for line in input_file:
         yield line
+
+
+class Grounder(object):
+    def __init__(self, parsed_program):
+        self.parsed_program = parsed_program
+        self.variables = list()
+        self.ground_values = list()
+        self.get_variables_and_domain()
+
+    def get_variables_and_domain(self):
+        for rule in self.parsed_program:
+            for raw_token in rule.head:
+                token = Token(raw_label=raw_token)
+                self.variables.extend(token.variables)
+                self.variables =  list(set(self.variables))
+                self.ground_values.extend(token.ground_values)
+                self.ground_values = list(set(self.ground_values))
+            for raw_token in rule.tail:
+                token = Token(raw_label=raw_token)
+                self.variables.extend(token.variables)
+                self.variables =  list(set(self.variables))
+                self.ground_values.extend(token.ground_values)
+                self.ground_values = list(set(self.ground_values))
+        self.ground_values.sort()
+        self.variables.sort()
+
+    def ground_program(self, parsed_program):
+        for rule in parsed_program:
+            for grounded_rule in self.ground_rule(rule):
+                yield grounded_rule
+
+    def ground_rule(self, rule):
+        val_product = product((self.ground_values * len(self.variables)))
+
+        for ground_valuations in val_product:
+            head = [str(token) for token in self.ground_tokens(rule.head, ground_valuations)]
+            tail = [str(token) for token in self.ground_tokens(rule.tail, ground_valuations)]
+
+            rule_string = ''
+            if head and tail:
+                rule_string = '%s :- %s' % (' v '.join(head), ', '.join(tail))
+            elif tail:
+                rule_string = ':- %s' % ', '.join(tail)
+            else:
+                rule_string = '%s' % (' v '.join(head))
+            yield Rule(rule_string)
+
+    def ground_tokens(self, tokens, valuation):
+        for token in tokens:
+            yield self.ground_token(token, valuation)
+
+    def ground_token(self, raw_token, valuation):
+        token = Token(raw_token)
+        grounded_token = Token(raw_token)
+        grounded_token.args = []
+        for argument in token.args:
+            if not argument.isupper():
+                grounded_token.args.append(argument)
+                continue
+            try:
+                var_index = self.variables.index(argument)
+            except ValueError:
+                print 'Parsing error with argument %s.' % argument
+                exit(1)
+            grounded_token.args.append(valuation[var_index])
+        return grounded_token

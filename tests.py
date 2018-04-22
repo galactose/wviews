@@ -1,5 +1,4 @@
 from unittest import TestCase
-from mock import MagicMock
 
 from program.atom import EpistemicAtom, EpistemicModality
 from wviews import WorldViews
