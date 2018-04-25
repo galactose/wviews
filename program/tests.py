@@ -10,7 +10,6 @@ from grounder import Token, Grounder
 from wviews.program.parser import parse_program
 
 
-
 class AtomTest(TestCase):
     def setUp(self):
         self.test_atom = EpistemicAtom(
@@ -229,7 +228,7 @@ class GrounderTest(TestCase):
         self.assertEqual(self.grounder.ground_values, ['a', 'b', 'c', 'd'])
 
     def test_ground_token(self):
-        valuation =['foo', 'bar', 'baz']
+        valuation = ['foo', 'bar', 'baz']
         variables = ['X', 'Y']
         gdr = self.grounder
         self.assertEqual(

@@ -12,13 +12,13 @@ class Token(object):
         self.args = self.parse_args(raw_label)
 
     def parse_args(self, raw_label):
-        token = raw_label.replace(' ','')
+        token = raw_label.replace(' ', '')
         if '(' not in raw_label and ')' not in raw_label:
             self.label = raw_label
             return []
         elif '(' in raw_label and ')' not in raw_label or \
-          '(' not in raw_label and ')' in raw_label:
-          raise ValueError('Bad token syntax: %s' % raw_label)
+             '(' not in raw_label and ')' in raw_label:
+            raise ValueError('Bad token syntax: %s' % raw_label)
         first_paren = token.index('(')
         self.label = token[:first_paren]
         raw_args = token[first_paren + 1:token.index(')')]
@@ -49,13 +49,13 @@ class Grounder(object):
             for raw_token in rule.head:
                 token = Token(raw_label=raw_token)
                 self.variables.extend(token.variables)
-                self.variables =  list(set(self.variables))
+                self.variables = list(set(self.variables))
                 self.ground_values.extend(token.ground_values)
                 self.ground_values = list(set(self.ground_values))
             for raw_token in rule.tail:
                 token = Token(raw_label=raw_token)
                 self.variables.extend(token.variables)
-                self.variables =  list(set(self.variables))
+                self.variables = list(set(self.variables))
                 self.ground_values.extend(token.ground_values)
                 self.ground_values = list(set(self.ground_values))
         self.ground_values.sort()
