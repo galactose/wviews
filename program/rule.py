@@ -3,40 +3,6 @@ class BrokenConstraint(Exception):
     pass
 
 
-class Token(object):
-    def __init__(self, raw_label):
-        self.raw_label = raw_label
-        self.label = None
-        self.variables = list()
-        self.ground_values = list()
-        self.args = self.parse_args(raw_label)
-
-    def parse_args(self, raw_label):
-        token = raw_label.replace(' ','')
-        if '(' not in raw_label and ')' not in raw_label:
-            self.label = raw_label
-            return []
-        elif '(' in raw_label and ')' not in raw_label or \
-          '(' not in raw_label and ')' in raw_label:
-          raise ValueError('Bad token syntax: %s' % raw_label)
-        first_paren = token.index('(')
-        self.label = token[:first_paren]
-        raw_args = token[first_paren + 1:token.index(')')]
-        args = raw_args.split(',')
-        for arg in args:
-            if arg.isupper() and arg not in self.variables:
-                self.variables.append(arg)
-            elif arg not in self.ground_values:
-                self.ground_values.append(arg)
-        self.variables.sort()
-        self.ground_values.sort()
-        return args
-
-    def __str__(self):
-        args = '(%s)' % ','.join(self.args) if self.args else ''
-        return '%s%s' % (self.label, args)
-
-
 class Rule(object):
     def __init__(self, rule_string):
         """

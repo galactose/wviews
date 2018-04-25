@@ -4,8 +4,11 @@ from mock import patch, MagicMock
 import wviews.program.parser as parser
 from wviews.program.atom import Atom, EpistemicModality, \
     NegationAsFailureAtom, EpistemicAtom
-from wviews.program.rule import Rule, Token
+from wviews.program.rule import Rule
 from wviews.program.program import LogicProgram
+from grounder import Token, Grounder
+from wviews.program.parser import parse_program
+
 
 
 class AtomTest(TestCase):
@@ -82,20 +85,6 @@ class ParserTest(TestCase):
         self.assertEqual(answer_set.next(), 'c')
         self.assertRaises(StopIteration, answer_set.next)
         get_sanitised_lines_mock.assert_called_once_with('test_file_name')
-
-
-class TokenTest(TestCase):
-
-    def setUp(self):
-        self.test_token = Token(raw_label='test(X, Y, a, b, c)')
-
-    def test_base_token(self):
-        self.assertEqual(str(self.test_token), 'test(X,Y,a,b,c)')
-        self.assertSetEqual(self.test_token.variables, {'X', 'Y'})
-        self.assertSetEqual(self.test_token.ground_values, {'a', 'b', 'c'})
-        self.assertEqual(str(Token(raw_label='test')), 'test')
-        self.assertRaises(ValueError, Token, 'test(X,')
-        self.assertRaises(ValueError, Token, 'testX)')
 
 
 class ProgramTest(TestCase):
@@ -204,3 +193,198 @@ class ProgramTest(TestCase):
         self.assertRaises(
             ValueError, self.program.get_atom_information, 'not ~d'
         )
+
+
+class TokenTest(TestCase):
+
+    def setUp(self):
+        self.test_token = Token(raw_label='test(X, Y, a, b, c)')
+
+    def test_base_token(self):
+        self.assertEqual(str(self.test_token), 'test(X,Y,a,b,c)')
+        self.assertListEqual(self.test_token.variables, ['X', 'Y'])
+        self.assertListEqual(self.test_token.ground_values, ['a', 'b', 'c'])
+        self.assertEqual(str(Token(raw_label='test')), 'test')
+
+        token = Token('test(w, X, y, Z)')
+        self.assertEqual(str(token), 'test(w,X,y,Z)')
+        self.assertListEqual(token.variables, ['X', 'Z'])
+        self.assertListEqual(token.ground_values, ['w', 'y'])
+
+        self.assertRaises(ValueError, Token, 'test(X,')
+        self.assertRaises(ValueError, Token, 'testX)')
+
+
+class GrounderTest(TestCase):
+    def setUp(self):
+        self.test_program = parse_program('examples/interview.elp')
+        self.grounder = Grounder(self.test_program)
+
+    def test_get_variables(self):
+        self.assertEqual(self.grounder.variables, ['X'])
+        self.assertEqual(self.grounder.ground_values, ['alice'])
+
+        self.grounder = Grounder(parse_program('examples/world.elp'))
+        self.assertEqual(self.grounder.variables, ['X', 'Y', 'Z'])
+        self.assertEqual(self.grounder.ground_values, ['a', 'b', 'c', 'd'])
+
+    def test_ground_token(self):
+        valuation =['foo', 'bar', 'baz']
+        variables = ['X', 'Y']
+        gdr = self.grounder
+        self.assertEqual(
+            str(gdr.ground_token('test(foo,X)', ['bar', 'baz'], variables)), 'test(foo,bar)'
+        )
+        self.assertEqual(
+            str(gdr.ground_token('test(X,foo,Y)', ['blah', 'blah'], variables)), 'test(blah,foo,blah)'
+        )
+        self.assertEqual(
+            str(gdr.ground_token('test(Y)', valuation, variables)), 'test(bar)'
+        )
+
+        variables = ['X', 'Y', 'Z']
+        self.assertEqual(
+            str(gdr.ground_token('test(Z,X,Y)', valuation, variables)), 'test(baz,foo,bar)'
+        )
+        self.assertEqual(
+            str(gdr.ground_token('test(X,Y,Z)', valuation, variables)), 'test(foo,bar,baz)'
+        )
+        self.assertEqual(
+            str(gdr.ground_token('test(Y,Z,X)', valuation, variables)), 'test(bar,baz,foo)'
+        )
+        self.assertEqual(
+            str(gdr.ground_token('test(fizz,bang,X)', valuation, variables)), 'test(fizz,bang,foo)'
+        )
+        self.assertEqual(
+            str(gdr.ground_token('test( )', valuation, variables)), 'test()'
+        )
+        gdr.variables = []
+        self.assertEqual(
+            str(gdr.ground_token('test(foo)', valuation, variables)), 'test(foo)'
+        )
+
+    def test_ground_tokens(self):
+        variables = ['X', 'Y', 'Z']
+        ground_it = self.grounder.ground_tokens(['test(Z,X,Y)', 'test(X,Y,Z)'], ['foo', 'bar', 'baz'], variables)
+
+        self.assertEqual(
+            str(ground_it.next()), 'test(baz,foo,bar)'
+        )
+        self.assertEqual(
+            str(ground_it.next()), 'test(foo,bar,baz)'
+        )
+        self.assertRaises(
+            StopIteration, ground_it.next
+        )
+
+    def test_ground_rule(self):
+        self.grounder.variables = ['X', 'Y', 'Z']
+        self.grounder.ground_values = ['foo', 'bar']
+        rule = Rule('a(X) :- b(X)')
+
+        ground_it = self.grounder.ground_rule(rule)
+        self.assertEqual(str(ground_it.next()), 'a(foo) :- b(foo).')
+        self.assertEqual(str(ground_it.next()), 'a(bar) :- b(bar).')
+        self.assertRaises(
+            StopIteration, ground_it.next
+        )
+
+        self.grounder.variables = ['X', 'Y', 'Z']
+        self.grounder.ground_values = ['foo', 'bar']
+        rule = Rule('a(X) v b v c(Z) :- b(X), d(Y)')
+
+        ground_it = self.grounder.ground_rule(rule)
+        rule = ground_it.next()
+        self.assertSetEqual(rule.head, {'a(foo)', 'b', 'c(foo)'})
+        self.assertSetEqual(rule.tail, {'b(foo)', 'd(foo)'})
+
+        rule = ground_it.next()
+        self.assertSetEqual(rule.head, {'a(foo)', 'b', 'c(bar)'})
+        self.assertSetEqual(rule.tail, {'b(foo)', 'd(foo)'})
+
+        rule = ground_it.next()
+        self.assertSetEqual(rule.head, {'a(foo)', 'b', 'c(foo)'})
+        self.assertSetEqual(rule.tail, {'b(foo)', 'd(bar)'})
+
+        rule = ground_it.next()
+        self.assertSetEqual(rule.head, {'a(foo)', 'b', 'c(bar)'})
+        self.assertSetEqual(rule.tail, {'b(foo)', 'd(bar)'})
+
+        rule = ground_it.next()
+        self.assertSetEqual(rule.head, {'a(bar)', 'b', 'c(foo)'})
+        self.assertSetEqual(rule.tail, {'b(bar)', 'd(foo)'})
+
+        rule = ground_it.next()
+        self.assertSetEqual(rule.head, {'a(bar)', 'b', 'c(bar)'})
+        self.assertSetEqual(rule.tail, {'b(bar)', 'd(foo)'})
+
+        rule = ground_it.next()
+        self.assertSetEqual(rule.head, {'a(bar)', 'b', 'c(foo)'})
+        self.assertSetEqual(rule.tail, {'b(bar)', 'd(bar)'})
+
+        rule = ground_it.next()
+        self.assertSetEqual(rule.head, {'a(bar)', 'b', 'c(bar)'})
+        self.assertSetEqual(rule.tail, {'b(bar)', 'd(bar)'})
+
+        self.assertRaises(StopIteration, ground_it.next)
+
+    def test_ground_program_no_vars(self):
+        test_program = parse_program('examples/conflict.elp')
+        grounder = Grounder(test_program)
+        it = grounder.ground_program(parse_program('examples/conflict.elp'))
+        rule = it.next()
+        self.assertSetEqual(rule.head, {'a'})
+        self.assertSetEqual(rule.tail, {'b', 'c'})
+        self.assertEqual(str(it.next()), 'b.')
+        self.assertEqual(str(it.next()), 'c.')
+        self.assertRaises(StopIteration, it.next)
+
+    def test_ground_program(self):
+        test_program = parse_program('examples/world.elp')
+        grounder = Grounder(test_program)
+        it = grounder.ground_program(parse_program('examples/world.elp'))
+
+        self.assertEqual(str(it.next()), 'P(b) v P(a).')
+        self.assertEqual(str(it.next()), 'P(c).')
+        self.assertEqual(str(it.next()), 'Q(d).')
+        self.assertEqual(str(it.next()), '~P(a) :- ~MP(a,a).')
+        self.assertEqual(str(it.next()), '~P(a) :- ~MP(a,b).')
+        self.assertEqual(str(it.next()), '~P(a) :- ~MP(a,c).')
+        self.assertEqual(str(it.next()), '~P(a) :- ~MP(a,d).')
+
+        self.assertEqual(str(it.next()), '~P(b) :- ~MP(b,a).')
+        self.assertEqual(str(it.next()), '~P(b) :- ~MP(b,b).')
+        self.assertEqual(str(it.next()), '~P(b) :- ~MP(b,c).')
+        self.assertEqual(str(it.next()), '~P(b) :- ~MP(b,d).')
+
+        self.assertEqual(str(it.next()), '~P(c) :- ~MP(c,a).')
+        self.assertEqual(str(it.next()), '~P(c) :- ~MP(c,b).')
+        self.assertEqual(str(it.next()), '~P(c) :- ~MP(c,c).')
+        self.assertEqual(str(it.next()), '~P(c) :- ~MP(c,d).')
+
+        self.assertEqual(str(it.next()), '~P(d) :- ~MP(d,a).')
+        self.assertEqual(str(it.next()), '~P(d) :- ~MP(d,b).')
+        self.assertEqual(str(it.next()), '~P(d) :- ~MP(d,c).')
+        self.assertEqual(str(it.next()), '~P(d) :- ~MP(d,d).')
+
+        self.assertEqual(str(it.next()), '~P(a) :- ~MQ(a).')
+        self.assertEqual(str(it.next()), '~P(a) :- ~MQ(b).')
+        self.assertEqual(str(it.next()), '~P(a) :- ~MQ(c).')
+        self.assertEqual(str(it.next()), '~P(a) :- ~MQ(d).')
+
+        self.assertEqual(str(it.next()), '~P(b) :- ~MQ(a).')
+        self.assertEqual(str(it.next()), '~P(b) :- ~MQ(b).')
+        self.assertEqual(str(it.next()), '~P(b) :- ~MQ(c).')
+        self.assertEqual(str(it.next()), '~P(b) :- ~MQ(d).')
+
+        self.assertEqual(str(it.next()), '~P(c) :- ~MQ(a).')
+        self.assertEqual(str(it.next()), '~P(c) :- ~MQ(b).')
+        self.assertEqual(str(it.next()), '~P(c) :- ~MQ(c).')
+        self.assertEqual(str(it.next()), '~P(c) :- ~MQ(d).')
+
+        self.assertEqual(str(it.next()), '~P(d) :- ~MQ(a).')
+        self.assertEqual(str(it.next()), '~P(d) :- ~MQ(b).')
+        self.assertEqual(str(it.next()), '~P(d) :- ~MQ(c).')
+        self.assertEqual(str(it.next()), '~P(d) :- ~MQ(d).')
+
+        self.assertRaises(StopIteration, it.next)
