@@ -1,0 +1,7 @@
+eligible(S) :- highGPA(S), student(S).
+eligible(S) :- fairGPA(S), minority(S), student(S).
+~eligible(S) :- ~fairGPA(S), ~highGPA(S), student(S).
+interview(S) :- ~Keligible(S), ~K~eligible(S), student(S).
+student(mary).
+fairGPA(mary) v highGPA(mary).
+minority(mary).

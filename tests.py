@@ -23,7 +23,7 @@ class EndToEndTest(TestCase):
         self.assertEqual(generator.next(), [{'a'}])
         self.assertRaises(StopIteration, generator.next)
 
-    def test_ungrounded_epistemic_program(self):
+    def test_interview_unground_end_to_end(self):
         generator = WorldViews('examples/interview.elp')
         test_worldview = generator.generate_worldview()
         wv = test_worldview.next()
@@ -37,7 +37,35 @@ class EndToEndTest(TestCase):
         )
         self.assertRaises(StopIteration, test_worldview.next)
 
-    def test_epistemic_program(self):
+    def test_interview_variant_end_to_end(self):
+        generator = WorldViews('examples/interview_variant.elp')
+        test_worldview = generator.generate_worldview()
+        wv = test_worldview.next()
+        self.assertSetEqual(
+            wv[0],
+            {'minority(mary)', 'eligible(mary)', 'student(mary)', 'fairGPA(mary)'}
+        )
+        self.assertSetEqual(
+            wv[1],
+            {'minority(mary)', 'eligible(mary)', 'student(mary)', 'highGPA(mary)'}
+        )
+        self.assertRaises(StopIteration, test_worldview.next)
+
+    def test_interview_variant_grounded_end_to_end(self):
+        generator = WorldViews('examples/interview_variant_grounded.elp')
+        test_worldview = generator.generate_worldview()
+        wv = test_worldview.next()
+        self.assertSetEqual(
+            wv[0],
+            {'minority(mary)', 'eligible(mary)', 'student(mary)', 'fairGPA(mary)'}
+        )
+        self.assertSetEqual(
+            wv[1],
+            {'minority(mary)', 'eligible(mary)', 'student(mary)', 'highGPA(mary)'}
+        )
+        self.assertRaises(StopIteration, test_worldview.next)
+
+    def test_interview_ground_end_to_end(self):
         generator = WorldViews('examples/interview_grounded.elp')
         test_worldview = generator.generate_worldview()
         wv = test_worldview.next()
