@@ -17,6 +17,7 @@
 """
 
 import sys
+
 from rule import Rule
 
 
@@ -62,7 +63,6 @@ def import_answer_set(file_name=''):
 def get_sanitised_lines(file_name=''):
     if not file_name:
         raise StopIteration
-
     try:
         # need to implement try/except block to catch exceptions
         input_file = file(file_name, 'r')

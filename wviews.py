@@ -35,17 +35,3 @@ if __name__ == '__main__':
         WORLDVIEWS.append(worldview)
 
     print WORLDVIEWS
-
-
-#     files = os.listdir('worldviews')
-#     session = WorldViews('worldviews\\interview.txt')
-#     worldview_grounder = grounder.grounding(session)
-#     countString = []
-#     length = 5
-#     base = 4
-#
-#     for count in range(0, length):
-#         countString.append(0)
-#
-#     while 1:
-#         countString = worldview_grounder.incString(countString, base, length)

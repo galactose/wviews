@@ -33,11 +33,25 @@ class Rule(object):
                 self.head.add(token.replace(' ', ''))
             if len(self.head) == 1 and '' in self.head:
                 self.head = set()
-            for token in body[1].split(','):
-                token = token.strip()
-                if not token.startswith('not '):
-                    token = token.replace(' ', '')
-                self.tail.add(token)
+
+            if '(' in body[1] and ')' in body[1]:
+                while '(' in body[1] and ')' in body[1]:
+                    first = body[1].index('(')
+                    last = body[1].index(')')
+                    token = body[1][:last + 1].strip()
+                    if not token.startswith('not '):
+                        token = token.replace(' ', '')
+                    self.tail.add(token)
+                    body[1] = body[1][last + 1:].strip()
+                    if body[1].startswith(','):
+                        body[1] = body[1][1:].strip()
+            else:
+                for token in body[1].split(','):
+                    token = token.strip()
+                    if not token.startswith('not '):
+                        token = token.replace(' ', '')
+                    self.tail.add(token)
+
         return [self.head, self.tail]
 
     def __str__(self):

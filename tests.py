@@ -1,27 +1,60 @@
 from unittest import TestCase
-from mock import MagicMock
 
 from program.atom import EpistemicAtom, EpistemicModality
 from wviews import WorldViews
 
 
 class EndToEndTest(TestCase):
-    def test_epistemic_program(self):
-        generator = WorldViews('examples/interview_grounded.elp')
-        test_worldview = generator.generate_worldview().next()
-        self.assertSetEqual(
-            test_worldview[0],
-            {'highGPA(alice)', 'eligible(alice)', 'interview(alice)'}
-        )
-        self.assertSetEqual(
-            test_worldview[1],
-            {'fairGPA(alice)', 'interview(alice)'}
-        )
-
     def test_conflict(self):
         generator = WorldViews('examples/conflict.elp')
         test_worldview = generator.generate_worldview().next()
         self.assertSetEqual(test_worldview[0], {'a', 'b', 'c'})
+
+    def test_epistemic(self):
+        generator = WorldViews('examples/epistemic.elp')
+        test_worldview = generator.generate_worldview()
+        # no consistent worldview, either valuation for this atom
+        # will lead to a contradiction.
+        self.assertRaises(StopIteration, test_worldview.next)
+
+    def test_inconsistent(self):
+        example_path = 'examples/inconsistent.elp'
+        generator = WorldViews(example_path).generate_worldview()
+        self.assertEqual(generator.next(), [{'a'}])
+        self.assertRaises(StopIteration, generator.next)
+
+    def test_ungrounded_epistemic_program(self):
+        generator = WorldViews('examples/interview.elp')
+        test_worldview = generator.generate_worldview()
+        wv = test_worldview.next()
+        self.assertSetEqual(
+            wv[0],
+            {'highGPA(alice)', 'eligible(alice)', 'interview(alice)'}
+        )
+        self.assertSetEqual(
+            wv[1],
+            {'fairGPA(alice)', 'interview(alice)'}
+        )
+        self.assertRaises(StopIteration, test_worldview.next)
+
+    def test_epistemic_program(self):
+        generator = WorldViews('examples/interview_grounded.elp')
+        test_worldview = generator.generate_worldview()
+        wv = test_worldview.next()
+        self.assertSetEqual(
+            wv[0],
+            {'highGPA(alice)', 'eligible(alice)', 'interview(alice)'}
+        )
+        self.assertSetEqual(
+            wv[1],
+            {'fairGPA(alice)', 'interview(alice)'}
+        )
+        self.assertRaises(StopIteration, test_worldview.next)
+
+    def test_negation_as_failure(self):
+        generator = WorldViews('examples/negation_as_failure.elp').generate_worldview()
+        self.assertEqual(generator.next(), [{'-a(s)', '-g(s)', 'u(x)'}])
+        self.assertRaises(StopIteration, generator.next)
 
     def test_psychopath(self):
         generator = WorldViews('examples/psychopath.elp')
@@ -38,19 +71,7 @@ class EndToEndTest(TestCase):
             worldview_generator.next(),
             [{'psychopath(sam)'}, {'violent(sam)'}]
         )
-
-    def test_inconsistent(self):
-        example_path = 'examples/inconsistent.elp'
-        generator = WorldViews(example_path).generate_worldview()
-        self.assertEqual(generator.next(), [{'a'}])
-        self.assertRaises(StopIteration, generator.next)
-
-    def test_epistemic(self):
-        generator = WorldViews('examples/epistemic.elp')
-        test_worldview = generator.generate_worldview()
-        # no consistent worldview, either valuation for this atom
-        # will lead to a contradiction.
-        self.assertRaises(StopIteration, test_worldview.next)
+        self.assertRaises(StopIteration, worldview_generator.next)
 
     def test_same(self):
         generator = WorldViews('examples/same.elp').generate_worldview()
@@ -62,10 +83,14 @@ class EndToEndTest(TestCase):
         self.assertEqual(generator.next(), [{'-b'}])
         self.assertRaises(StopIteration, generator.next)
 
-    def test_negation_as_failure(self):
-        generator = WorldViews('examples/naf.elp').generate_worldview()
-        self.assertEqual(generator.next(), [{'-a(s)', '-g(s)', 'u(x)'}])
-        self.assertRaises(StopIteration, generator.next)
+    def test_world(self):
+        generator = WorldViews('examples/set.elp')
+        worldview_generator = generator.generate_worldview()
+        self.assertEqual(
+            worldview_generator.next(),
+            [set(['p(a)', 'q(b)']), set(['p(a)', 'q(c)'])]
+        )
+        self.assertRaises(StopIteration, worldview_generator.next)
 
 
 class WorldViewsTest(TestCase):
