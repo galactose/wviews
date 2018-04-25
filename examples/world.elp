@@ -1,4 +1,5 @@
 P(a) v P(b).
 P(c).
 Q(d).
-~P(X) :- ~MP(X).
+~P(X) :- ~MP(X, Y).
+~P(Y) :- ~MQ(Z).
